@@ -108,12 +108,52 @@ const generateChartSVG = (sections: CostSection[], totals: Record<string, number
   if (grandTotal === 0 || chartData.length === 0) return "";
 
   const colors = ["#3b82f6", "#22c55e", "#f59e0b", "#8b5cf6", "#ef4444", "#06b6d4"];
+  const lightColors = ["#60a5fa", "#4ade80", "#fbbf24", "#a78bfa", "#f87171", "#22d3ee"];
 
-  // Generate pie chart SVG
-  const radius = 70;
-  const cx = 80;
-  const cy = 80;
-  let currentAngle = -90; // Start from top
+  // Generate 3D pie chart SVG with depth effect
+  const radius = 65;
+  const cx = 85;
+  const cy = 75;
+  const depth = 15; // 3D depth
+  let currentAngle = -90;
+
+  // Generate 3D depth layers (bottom shadow)
+  const depthSlices = chartData.map((item, index) => {
+    const percentage = (item.value / grandTotal) * 100;
+    const angle = (percentage / 100) * 360;
+    const startAngle = currentAngle;
+    const endAngle = currentAngle + angle;
+    currentAngle = endAngle;
+
+    const startRad = (startAngle * Math.PI) / 180;
+    const endRad = (endAngle * Math.PI) / 180;
+    const x1 = cx + radius * Math.cos(startRad);
+    const y1 = cy + radius * Math.sin(startRad);
+    const x2 = cx + radius * Math.cos(endRad);
+    const y2 = cy + radius * Math.sin(endRad);
+    const largeArc = angle > 180 ? 1 : 0;
+    const color = colors[index % colors.length];
+
+    // Darken the color for depth
+    const darkColor = color.replace('#', '');
+    const r = Math.max(0, parseInt(darkColor.substr(0, 2), 16) - 60);
+    const g = Math.max(0, parseInt(darkColor.substr(2, 2), 16) - 60);
+    const b = Math.max(0, parseInt(darkColor.substr(4, 2), 16) - 60);
+    const shadowColor = `rgb(${r},${g},${b})`;
+
+    if (chartData.length === 1) {
+      return `<ellipse cx="${cx}" cy="${cy + depth}" rx="${radius}" ry="${radius * 0.3}" fill="${shadowColor}" />`;
+    }
+
+    // Create depth effect for visible bottom half only
+    if (startAngle > -90 && startAngle < 90) {
+      return `<path d="M${cx},${cy + depth} L${x1},${y1 + depth} A${radius},${radius} 0 ${largeArc},1 ${x2},${y2 + depth} Z" fill="${shadowColor}" />`;
+    }
+    return '';
+  }).join("");
+
+  // Reset angle for main slices
+  currentAngle = -90;
 
   const pieSlices = chartData.map((item, index) => {
     const percentage = (item.value / grandTotal) * 100;
@@ -130,12 +170,30 @@ const generateChartSVG = (sections: CostSection[], totals: Record<string, number
     const y2 = cy + radius * Math.sin(endRad);
     const largeArc = angle > 180 ? 1 : 0;
     const color = colors[index % colors.length];
+    const lightColor = lightColors[index % lightColors.length];
+    const gradientId = `grad-${index}`;
 
     if (chartData.length === 1) {
-      return `<circle cx="${cx}" cy="${cy}" r="${radius}" fill="${color}" />`;
+      return `
+        <defs>
+          <linearGradient id="${gradientId}" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" style="stop-color:${lightColor};stop-opacity:1" />
+            <stop offset="100%" style="stop-color:${color};stop-opacity:1" />
+          </linearGradient>
+        </defs>
+        <circle cx="${cx}" cy="${cy}" r="${radius}" fill="url(#${gradientId})" />
+      `;
     }
 
-    return `<path d="M${cx},${cy} L${x1},${y1} A${radius},${radius} 0 ${largeArc},1 ${x2},${y2} Z" fill="${color}" />`;
+    return `
+      <defs>
+        <linearGradient id="${gradientId}" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" style="stop-color:${lightColor};stop-opacity:1" />
+          <stop offset="100%" style="stop-color:${color};stop-opacity:1" />
+        </linearGradient>
+      </defs>
+      <path d="M${cx},${cy} L${x1},${y1} A${radius},${radius} 0 ${largeArc},1 ${x2},${y2} Z" fill="url(#${gradientId})" stroke="white" stroke-width="1" />
+    `;
   }).join("");
 
   // Generate legend items
@@ -144,7 +202,7 @@ const generateChartSVG = (sections: CostSection[], totals: Record<string, number
     const color = colors[index % colors.length];
     return `
       <div class="legend-item">
-        <span class="legend-color" style="background-color: ${color};"></span>
+        <span class="legend-color" style="background: linear-gradient(135deg, ${lightColors[index % lightColors.length]}, ${color});"></span>
         <span class="legend-text">${item.name}</span>
       </div>
     `;
@@ -154,6 +212,7 @@ const generateChartSVG = (sections: CostSection[], totals: Record<string, number
   const bars = chartData.map((item, index) => {
     const percentage = (item.value / grandTotal) * 100;
     const color = colors[index % colors.length];
+    const lightColor = lightColors[index % lightColors.length];
 
     return `
       <div class="bar-item">
@@ -162,7 +221,7 @@ const generateChartSVG = (sections: CostSection[], totals: Record<string, number
           <span class="bar-value">${formatCurrency(item.value)} (${percentage.toFixed(1)}%)</span>
         </div>
         <div class="bar-track">
-          <div class="bar-fill" style="width: ${percentage}%; background-color: ${color};"></div>
+          <div class="bar-fill" style="width: ${percentage}%; background: linear-gradient(90deg, ${lightColor}, ${color});"></div>
         </div>
       </div>
     `;
@@ -173,12 +232,21 @@ const generateChartSVG = (sections: CostSection[], totals: Record<string, number
       <h3>Cost Distribution by Section</h3>
       <div class="charts-wrapper">
         <div class="pie-chart-container">
-          <svg width="160" height="160" viewBox="0 0 160 160">
-            ${pieSlices}
-            <circle cx="${cx}" cy="${cy}" r="35" fill="white" />
-            <text x="${cx}" y="${cy - 5}" text-anchor="middle" font-size="10" fill="#666">Total</text>
-            <text x="${cx}" y="${cy + 10}" text-anchor="middle" font-size="11" font-weight="bold" fill="#1a1a1a">${formatCurrency(grandTotal)}</text>
-          </svg>
+          <div class="pie-3d-wrapper">
+            <svg width="170" height="170" viewBox="0 0 170 170" style="filter: drop-shadow(0 8px 16px rgba(0,0,0,0.15));">
+              ${depthSlices}
+              ${pieSlices}
+              <defs>
+                <linearGradient id="center-grad" x1="0%" y1="0%" x2="0%" y2="100%">
+                  <stop offset="0%" style="stop-color:#ffffff;stop-opacity:1" />
+                  <stop offset="100%" style="stop-color:#f1f5f9;stop-opacity:1" />
+                </linearGradient>
+              </defs>
+              <circle cx="${cx}" cy="${cy}" r="32" fill="url(#center-grad)" stroke="#e2e8f0" stroke-width="1" />
+              <text x="${cx}" y="${cy - 5}" text-anchor="middle" font-size="9" fill="#666">Total</text>
+              <text x="${cx}" y="${cy + 10}" text-anchor="middle" font-size="10" font-weight="bold" fill="#1a1a1a">${formatCurrency(grandTotal)}</text>
+            </svg>
+          </div>
           <div class="pie-legend">
             ${legendItems}
           </div>
