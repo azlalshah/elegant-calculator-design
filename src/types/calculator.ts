@@ -8,9 +8,11 @@ export interface CostItem {
   icon: string;
 }
 
-export interface CostCategory {
+export interface CostSection {
   id: string;
   name: string;
+  icon: string;
+  color: string;
   items: CostItem[];
 }
 
@@ -27,9 +29,7 @@ export interface ProjectInfo {
 
 export interface CalculatorState {
   projectInfo: ProjectInfo;
-  materials: CostItem[];
-  labor: CostItem[];
-  miscellaneous: CostItem[];
+  sections: CostSection[];
 }
 
 export interface ProjectTemplate {
@@ -38,3 +38,14 @@ export interface ProjectTemplate {
   description: string;
   data: CalculatorState;
 }
+
+// Available icons for materials/items
+export const AVAILABLE_ICONS = [
+  "Package", "Mountain", "Grid3x3", "Square", "Paintbrush", "DoorOpen", 
+  "SquareStack", "Zap", "Pipette", "Wrench", "Hammer", "Lightbulb", 
+  "Droplets", "Palette", "Brick", "LayoutGrid", "Glasses", "Frame", 
+  "Bath", "MoreHorizontal", "Building", "Building2", "Home", "Factory",
+  "Warehouse", "HardHat", "Ruler", "Layers", "Box", "Cylinder",
+  "Cable", "Fan", "Heater", "AirVent", "Fence", "TreeDeciduous",
+  "Car", "Truck", "Shovel", "Scissors", "PaintBucket", "Drill"
+] as const;

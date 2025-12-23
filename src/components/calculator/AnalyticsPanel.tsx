@@ -1,27 +1,25 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { PieChart, Pie, Cell, ResponsiveContainer, Legend, Tooltip } from "recharts";
-import { Package, Hammer, MoreHorizontal, TrendingUp, Layers, DollarSign } from "lucide-react";
-import { CostItem } from "@/types/calculator";
+import { PieChart, Pie, Cell, ResponsiveContainer, Legend, Tooltip, BarChart, Bar, XAxis, YAxis, CartesianGrid } from "recharts";
+import { TrendingUp, Layers, DollarSign } from "lucide-react";
+import { CostSection } from "@/types/calculator";
 
 interface AnalyticsPanelProps {
-  totals: {
-    materials: number;
-    labor: number;
-    miscellaneous: number;
-    grandTotal: number;
-  };
-  materials: CostItem[];
-  labor: CostItem[];
-  miscellaneous: CostItem[];
+  totals: Record<string, number>;
+  sections: CostSection[];
   workingArea: number;
+  duration: string;
 }
 
-export const AnalyticsPanel = ({ totals, materials, labor, miscellaneous, workingArea }: AnalyticsPanelProps) => {
-  const chartData = [
-    { name: "Materials", value: totals.materials, color: "hsl(217, 91%, 60%)" },
-    { name: "Labor", value: totals.labor, color: "hsl(142, 76%, 36%)" },
-    { name: "Miscellaneous", value: totals.miscellaneous, color: "hsl(38, 92%, 50%)" },
-  ].filter((item) => item.value > 0);
+const COLORS = ["#3b82f6", "#22c55e", "#f59e0b", "#8b5cf6", "#ef4444", "#06b6d4"];
+
+export const AnalyticsPanel = ({ totals, sections, workingArea, duration }: AnalyticsPanelProps) => {
+  const chartData = sections
+    .map((section, index) => ({
+      name: section.name,
+      value: totals[section.id] || 0,
+      color: COLORS[index % COLORS.length],
+    }))
+    .filter((item) => item.value > 0);
 
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat("en-PK", {
@@ -32,16 +30,27 @@ export const AnalyticsPanel = ({ totals, materials, labor, miscellaneous, workin
     }).format(amount);
   };
 
-  const allItems = [...materials, ...labor, ...miscellaneous];
+  const allItems = sections.flatMap((s) => s.items);
   const activeItems = allItems.filter((item) => item.quantity > 0 && item.unitPrice > 0);
-  
-  const largestExpense = activeItems.length > 0
-    ? activeItems.reduce((max, item) => 
-        item.quantity * item.unitPrice > max.quantity * max.unitPrice ? item : max
-      , activeItems[0])
-    : null;
+
+  const largestExpense =
+    activeItems.length > 0
+      ? activeItems.reduce((max, item) =>
+          item.quantity * item.unitPrice > max.quantity * max.unitPrice ? item : max
+        , activeItems[0])
+      : null;
 
   const costPerSqft = workingArea > 0 ? Math.round(totals.grandTotal / workingArea) : 0;
+
+  // Duration chart data
+  const durationMonths = parseInt(duration) || 0;
+  const durationData = durationMonths > 0 ? [
+    { name: "Planning", months: Math.round(durationMonths * 0.1) || 1 },
+    { name: "Foundation", months: Math.round(durationMonths * 0.15) || 1 },
+    { name: "Structure", months: Math.round(durationMonths * 0.3) || 1 },
+    { name: "Finishing", months: Math.round(durationMonths * 0.35) || 1 },
+    { name: "Handover", months: Math.round(durationMonths * 0.1) || 1 },
+  ] : [];
 
   const stats = [
     {
@@ -116,6 +125,35 @@ export const AnalyticsPanel = ({ totals, materials, labor, miscellaneous, workin
           </ResponsiveContainer>
         </div>
 
+        {/* Duration Bar Chart */}
+        {durationData.length > 0 && (
+          <div>
+            <p className="text-sm font-medium text-muted-foreground mb-2">Project Timeline</p>
+            <div className="h-40">
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={durationData} layout="vertical">
+                  <CartesianGrid strokeDasharray="3 3" horizontal={false} />
+                  <XAxis type="number" hide />
+                  <YAxis type="category" dataKey="name" width={70} tick={{ fontSize: 11 }} />
+                  <Tooltip
+                    formatter={(value: number) => [`${value} month(s)`, "Duration"]}
+                    contentStyle={{
+                      backgroundColor: "hsl(var(--card))",
+                      border: "1px solid hsl(var(--border))",
+                      borderRadius: "8px",
+                    }}
+                  />
+                  <Bar dataKey="months" radius={[0, 4, 4, 0]}>
+                    {durationData.map((_, index) => (
+                      <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                    ))}
+                  </Bar>
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+          </div>
+        )}
+
         {/* Stats Grid */}
         <div className="grid gap-3">
           {stats.map((stat) => (
@@ -136,24 +174,27 @@ export const AnalyticsPanel = ({ totals, materials, labor, miscellaneous, workin
         <div className="space-y-2">
           <p className="text-sm font-medium text-muted-foreground">Breakdown</p>
           <div className="space-y-2">
-            {[
-              { label: "Materials", value: totals.materials, icon: Package, color: "bg-chart-materials" },
-              { label: "Labor", value: totals.labor, icon: Hammer, color: "bg-chart-labor" },
-              { label: "Miscellaneous", value: totals.miscellaneous, icon: MoreHorizontal, color: "bg-chart-misc" },
-            ].map((item) => (
-              <div key={item.label} className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <div className={`h-2.5 w-2.5 rounded-full ${item.color}`} />
-                  <span className="text-sm">{item.label}</span>
-                </div>
-                <span className="text-sm font-medium">
-                  {formatCurrency(item.value)}
-                  <span className="ml-1 text-xs text-muted-foreground">
-                    ({totals.grandTotal > 0 ? Math.round((item.value / totals.grandTotal) * 100) : 0}%)
+            {sections.map((section, index) => {
+              const sectionTotal = totals[section.id] || 0;
+              if (sectionTotal === 0) return null;
+              return (
+                <div key={section.id} className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <div
+                      className="h-2.5 w-2.5 rounded-full"
+                      style={{ backgroundColor: COLORS[index % COLORS.length] }}
+                    />
+                    <span className="text-sm">{section.name}</span>
+                  </div>
+                  <span className="text-sm font-medium">
+                    {formatCurrency(sectionTotal)}
+                    <span className="ml-1 text-xs text-muted-foreground">
+                      ({totals.grandTotal > 0 ? Math.round((sectionTotal / totals.grandTotal) * 100) : 0}%)
+                    </span>
                   </span>
-                </span>
-              </div>
-            ))}
+                </div>
+              );
+            })}
           </div>
         </div>
       </CardContent>

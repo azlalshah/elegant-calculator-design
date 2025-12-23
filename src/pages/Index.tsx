@@ -1,10 +1,11 @@
-import { useEffect } from "react";
+import { useState, useEffect } from "react";
 import { Header } from "@/components/calculator/Header";
 import { ProjectInfoCard } from "@/components/calculator/ProjectInfoCard";
 import { TemplateSelector } from "@/components/calculator/TemplateSelector";
 import { CostBreakdown } from "@/components/calculator/CostBreakdown";
 import { AnalyticsPanel } from "@/components/calculator/AnalyticsPanel";
 import { ActionBar } from "@/components/calculator/ActionBar";
+import { PDFPreviewModal } from "@/components/calculator/PDFPreviewModal";
 import { useCalculator } from "@/hooks/useCalculator";
 import { exportToPDF } from "@/components/calculator/PDFExport";
 
@@ -15,11 +16,18 @@ const Index = () => {
     updateItem,
     addItem,
     removeItem,
+    duplicateItem,
+    reorderItems,
+    updateSection,
+    addSection,
+    removeSection,
     loadTemplate,
     resetCalculator,
     totals,
     ratePerSqft,
   } = useCalculator();
+
+  const [showPreview, setShowPreview] = useState(false);
 
   // Initialize theme from localStorage
   useEffect(() => {
@@ -31,33 +39,41 @@ const Index = () => {
 
   const handleExportPDF = () => {
     exportToPDF({ state, totals, ratePerSqft });
+    setShowPreview(false);
+  };
+
+  const handleOpenPreview = () => {
+    setShowPreview(true);
   };
 
   return (
     <div className="min-h-screen bg-background pb-20">
       <Header />
-      
+
       <main className="container py-6">
         <div className="grid gap-6 lg:grid-cols-3">
           {/* Main Content */}
           <div className="space-y-6 lg:col-span-2">
             <TemplateSelector onSelectTemplate={loadTemplate} />
-            
+
             <ProjectInfoCard
               projectInfo={state.projectInfo}
               onUpdate={updateProjectInfo}
               ratePerSqft={ratePerSqft}
               grandTotal={totals.grandTotal}
             />
-            
+
             <CostBreakdown
-              materials={state.materials}
-              labor={state.labor}
-              miscellaneous={state.miscellaneous}
+              sections={state.sections}
               totals={totals}
               onUpdateItem={updateItem}
               onAddItem={addItem}
               onRemoveItem={removeItem}
+              onDuplicateItem={duplicateItem}
+              onReorderItems={reorderItems}
+              onUpdateSection={updateSection}
+              onAddSection={addSection}
+              onRemoveSection={removeSection}
             />
           </div>
 
@@ -65,10 +81,9 @@ const Index = () => {
           <div className="lg:sticky lg:top-20 lg:self-start">
             <AnalyticsPanel
               totals={totals}
-              materials={state.materials}
-              labor={state.labor}
-              miscellaneous={state.miscellaneous}
+              sections={state.sections}
               workingArea={state.projectInfo.workingArea}
+              duration={state.projectInfo.duration}
             />
           </div>
         </div>
@@ -77,7 +92,16 @@ const Index = () => {
       <ActionBar
         grandTotal={totals.grandTotal}
         onReset={resetCalculator}
-        onExportPDF={handleExportPDF}
+        onExportPDF={handleOpenPreview}
+      />
+
+      <PDFPreviewModal
+        open={showPreview}
+        onOpenChange={setShowPreview}
+        state={state}
+        totals={totals}
+        ratePerSqft={ratePerSqft}
+        onExport={handleExportPDF}
       />
     </div>
   );
