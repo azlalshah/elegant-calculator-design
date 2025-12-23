@@ -1,9 +1,10 @@
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { CostItem } from "@/types/calculator";
 import { CostItemRow } from "./CostItemRow";
-import { Package, Hammer, MoreHorizontal } from "lucide-react";
+import { Package, Hammer, MoreHorizontal, Plus } from "lucide-react";
 
 interface CostBreakdownProps {
   materials: CostItem[];
@@ -15,6 +16,8 @@ interface CostBreakdownProps {
     miscellaneous: number;
   };
   onUpdateItem: (category: "materials" | "labor" | "miscellaneous", itemId: string, updates: Partial<CostItem>) => void;
+  onAddItem: (category: "materials" | "labor" | "miscellaneous") => void;
+  onRemoveItem: (category: "materials" | "labor" | "miscellaneous", itemId: string) => void;
 }
 
 const formatCurrency = (amount: number) => {
@@ -26,10 +29,18 @@ const formatCurrency = (amount: number) => {
   }).format(amount);
 };
 
-export const CostBreakdown = ({ materials, labor, miscellaneous, totals, onUpdateItem }: CostBreakdownProps) => {
+export const CostBreakdown = ({ 
+  materials, 
+  labor, 
+  miscellaneous, 
+  totals, 
+  onUpdateItem,
+  onAddItem,
+  onRemoveItem 
+}: CostBreakdownProps) => {
   const sections = [
     {
-      id: "materials",
+      id: "materials" as const,
       title: "Materials",
       icon: Package,
       items: materials,
@@ -37,7 +48,7 @@ export const CostBreakdown = ({ materials, labor, miscellaneous, totals, onUpdat
       color: "bg-chart-materials",
     },
     {
-      id: "labor",
+      id: "labor" as const,
       title: "Labor",
       icon: Hammer,
       items: labor,
@@ -45,7 +56,7 @@ export const CostBreakdown = ({ materials, labor, miscellaneous, totals, onUpdat
       color: "bg-chart-labor",
     },
     {
-      id: "miscellaneous",
+      id: "miscellaneous" as const,
       title: "Miscellaneous",
       icon: MoreHorizontal,
       items: miscellaneous,
@@ -71,7 +82,7 @@ export const CostBreakdown = ({ materials, labor, miscellaneous, totals, onUpdat
                     </div>
                     <span className="font-semibold">{section.title}</span>
                     <Badge variant="secondary" className="ml-2">
-                      {section.items.filter((i) => i.quantity > 0).length} items
+                      {section.items.length} items
                     </Badge>
                   </div>
                   <span className="text-lg font-bold">{formatCurrency(section.total)}</span>
@@ -83,9 +94,19 @@ export const CostBreakdown = ({ materials, labor, miscellaneous, totals, onUpdat
                     <CostItemRow
                       key={item.id}
                       item={item}
-                      onUpdate={(updates) => onUpdateItem(section.id as "materials" | "labor" | "miscellaneous", item.id, updates)}
+                      onUpdate={(updates) => onUpdateItem(section.id, item.id, updates)}
+                      onRemove={() => onRemoveItem(section.id, item.id)}
                     />
                   ))}
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => onAddItem(section.id)}
+                    className="w-full mt-2 border-dashed"
+                  >
+                    <Plus className="h-4 w-4 mr-2" />
+                    Add {section.title.slice(0, -1)}
+                  </Button>
                 </div>
               </AccordionContent>
             </AccordionItem>

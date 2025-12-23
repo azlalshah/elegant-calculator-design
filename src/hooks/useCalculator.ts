@@ -43,6 +43,35 @@ export const useCalculator = () => {
     []
   );
 
+  const addItem = useCallback(
+    (category: "materials" | "labor" | "miscellaneous") => {
+      const newItem: CostItem = {
+        id: `${category}-${Date.now()}`,
+        name: "New Item",
+        description: "Enter description",
+        quantity: 0,
+        unitPrice: 0,
+        unit: "nos",
+        icon: category === "materials" ? "Package" : category === "labor" ? "Hammer" : "MoreHorizontal",
+      };
+      setState((prev) => ({
+        ...prev,
+        [category]: [...prev[category], newItem],
+      }));
+    },
+    []
+  );
+
+  const removeItem = useCallback(
+    (category: "materials" | "labor" | "miscellaneous", itemId: string) => {
+      setState((prev) => ({
+        ...prev,
+        [category]: prev[category].filter((item) => item.id !== itemId),
+      }));
+    },
+    []
+  );
+
   const loadTemplate = useCallback((templateData: CalculatorState) => {
     setState(JSON.parse(JSON.stringify(templateData)));
   }, []);
@@ -80,6 +109,8 @@ export const useCalculator = () => {
     state,
     updateProjectInfo,
     updateItem,
+    addItem,
+    removeItem,
     loadTemplate,
     resetCalculator,
     totals,
