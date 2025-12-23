@@ -225,7 +225,7 @@ export const PDFPreviewModal = ({
                   </div>
                 </div>
                 
-                {/* Bar Chart with gradients */}
+                {/* Bar Chart with gradients and color boxes */}
                 <div className="flex-1 space-y-2">
                   {chartData.map((item, index) => {
                     const percentage = (item.value / totalValue) * 100;
@@ -233,8 +233,14 @@ export const PDFPreviewModal = ({
                     const lightColors = ["#60a5fa", "#4ade80", "#fbbf24", "#a78bfa", "#f87171", "#22d3ee"];
                     return (
                       <div key={item.name} className="space-y-1">
-                        <div className="flex justify-between text-xs">
-                          <span className="font-semibold text-gray-900">{item.name}</span>
+                        <div className="flex justify-between items-center text-xs">
+                          <div className="flex items-center gap-2">
+                            <div 
+                              className="w-3 h-3 rounded-sm flex-shrink-0" 
+                              style={{ background: `linear-gradient(135deg, ${lightColors[index % lightColors.length]}, ${colors[index % colors.length]})` }} 
+                            />
+                            <span className="font-semibold text-gray-900">{item.name}</span>
+                          </div>
                           <span className="font-medium text-gray-700">{formatCurrency(item.value)} ({percentage.toFixed(1)}%)</span>
                         </div>
                         <div className="h-3 bg-gray-200 rounded-full overflow-hidden shadow-inner">

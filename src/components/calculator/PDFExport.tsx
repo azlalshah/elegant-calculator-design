@@ -208,7 +208,7 @@ const generateChartSVG = (sections: CostSection[], totals: Record<string, number
     `;
   }).join("");
 
-  // Generate HTML-based horizontal bar chart
+  // Generate HTML-based horizontal bar chart with color indicators
   const bars = chartData.map((item, index) => {
     const percentage = (item.value / grandTotal) * 100;
     const color = colors[index % colors.length];
@@ -217,7 +217,10 @@ const generateChartSVG = (sections: CostSection[], totals: Record<string, number
     return `
       <div class="bar-item">
         <div class="bar-header">
-          <span class="bar-label">${item.name}</span>
+          <div class="bar-label-wrapper">
+            <span class="bar-color-box" style="background: linear-gradient(135deg, ${lightColor}, ${color});"></span>
+            <span class="bar-label">${item.name}</span>
+          </div>
           <span class="bar-value">${formatCurrency(item.value)} (${percentage.toFixed(1)}%)</span>
         </div>
         <div class="bar-track">
@@ -246,9 +249,6 @@ const generateChartSVG = (sections: CostSection[], totals: Record<string, number
               <text x="${cx}" y="${cy - 5}" text-anchor="middle" font-size="9" fill="#666">Total</text>
               <text x="${cx}" y="${cy + 10}" text-anchor="middle" font-size="10" font-weight="bold" fill="#1a1a1a">${formatCurrency(grandTotal)}</text>
             </svg>
-          </div>
-          <div class="pie-legend">
-            ${legendItems}
           </div>
         </div>
         <div class="bar-chart-container">
@@ -491,7 +491,19 @@ export const generatePDFContent = ({ state, totals, ratePerSqft }: PDFExportProp
         .bar-header {
           display: flex;
           justify-content: space-between;
+          align-items: center;
           font-size: 11px;
+        }
+        .bar-label-wrapper {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+        }
+        .bar-color-box {
+          width: 12px;
+          height: 12px;
+          border-radius: 3px;
+          flex-shrink: 0;
         }
         .bar-label {
           font-weight: 600;
