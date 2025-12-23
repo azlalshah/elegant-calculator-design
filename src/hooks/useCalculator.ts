@@ -5,13 +5,53 @@ import { arrayMove } from "@dnd-kit/sortable";
 
 const STORAGE_KEY = "econ-calculator-data";
 
+// Migration function to convert old data format to new sections format
+const migrateOldData = (data: any): CalculatorState => {
+  // If already has sections array, return as is
+  if (data.sections && Array.isArray(data.sections)) {
+    return data as CalculatorState;
+  }
+
+  // Migrate from old format (materials, labor, miscellaneous arrays)
+  const emptyState = getEmptyState();
+  
+  return {
+    projectInfo: data.projectInfo || emptyState.projectInfo,
+    sections: [
+      ...emptyState.sections.slice(0, 3), // Structure, Gray Structure, Finishing
+      {
+        id: "materials",
+        name: "Materials",
+        icon: "Package",
+        color: "bg-primary",
+        items: Array.isArray(data.materials) ? data.materials : emptyState.sections[3].items,
+      },
+      {
+        id: "labor",
+        name: "Labor",
+        icon: "Hammer",
+        color: "bg-success",
+        items: Array.isArray(data.labor) ? data.labor : emptyState.sections[4].items,
+      },
+      {
+        id: "miscellaneous",
+        name: "Miscellaneous",
+        icon: "MoreHorizontal",
+        color: "bg-warning",
+        items: Array.isArray(data.miscellaneous) ? data.miscellaneous : emptyState.sections[5].items,
+      },
+    ],
+  };
+};
+
 export const useCalculator = () => {
   const [state, setState] = useState<CalculatorState>(() => {
     if (typeof window !== "undefined") {
       const saved = localStorage.getItem(STORAGE_KEY);
       if (saved) {
         try {
-          return JSON.parse(saved);
+          const parsed = JSON.parse(saved);
+          return migrateOldData(parsed);
         } catch {
           return getEmptyState();
         }
