@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback, useMemo } from "react";
-import { CalculatorState, CostItem, ProjectInfo } from "@/types/calculator";
+import { CalculatorState, CostItem, CostSection, ProjectInfo } from "@/types/calculator";
 import { getEmptyState } from "@/data/templates";
+import { arrayMove } from "@dnd-kit/sortable";
 
 const STORAGE_KEY = "econ-calculator-data";
 
@@ -32,45 +33,121 @@ export const useCalculator = () => {
   }, []);
 
   const updateItem = useCallback(
-    (category: "materials" | "labor" | "miscellaneous", itemId: string, updates: Partial<CostItem>) => {
+    (sectionId: string, itemId: string, updates: Partial<CostItem>) => {
       setState((prev) => ({
         ...prev,
-        [category]: prev[category].map((item) =>
-          item.id === itemId ? { ...item, ...updates } : item
+        sections: prev.sections.map((section) =>
+          section.id === sectionId
+            ? {
+                ...section,
+                items: section.items.map((item) =>
+                  item.id === itemId ? { ...item, ...updates } : item
+                ),
+              }
+            : section
         ),
       }));
     },
     []
   );
 
-  const addItem = useCallback(
-    (category: "materials" | "labor" | "miscellaneous") => {
-      const newItem: CostItem = {
-        id: `${category}-${Date.now()}`,
-        name: "New Item",
-        description: "Enter description",
-        quantity: 0,
-        unitPrice: 0,
-        unit: "nos",
-        icon: category === "materials" ? "Package" : category === "labor" ? "Hammer" : "MoreHorizontal",
-      };
+  const addItem = useCallback((sectionId: string) => {
+    const newItem: CostItem = {
+      id: `${sectionId}-${Date.now()}`,
+      name: "New Item",
+      description: "Enter description",
+      quantity: 0,
+      unitPrice: 0,
+      unit: "nos",
+      icon: "Package",
+    };
+    setState((prev) => ({
+      ...prev,
+      sections: prev.sections.map((section) =>
+        section.id === sectionId
+          ? { ...section, items: [...section.items, newItem] }
+          : section
+      ),
+    }));
+  }, []);
+
+  const removeItem = useCallback((sectionId: string, itemId: string) => {
+    setState((prev) => ({
+      ...prev,
+      sections: prev.sections.map((section) =>
+        section.id === sectionId
+          ? { ...section, items: section.items.filter((item) => item.id !== itemId) }
+          : section
+      ),
+    }));
+  }, []);
+
+  const duplicateItem = useCallback((sectionId: string, itemId: string) => {
+    setState((prev) => ({
+      ...prev,
+      sections: prev.sections.map((section) => {
+        if (section.id !== sectionId) return section;
+        const itemIndex = section.items.findIndex((item) => item.id === itemId);
+        if (itemIndex === -1) return section;
+        const originalItem = section.items[itemIndex];
+        const duplicatedItem: CostItem = {
+          ...originalItem,
+          id: `${sectionId}-${Date.now()}`,
+          name: `${originalItem.name} (Copy)`,
+        };
+        const newItems = [...section.items];
+        newItems.splice(itemIndex + 1, 0, duplicatedItem);
+        return { ...section, items: newItems };
+      }),
+    }));
+  }, []);
+
+  const reorderItems = useCallback(
+    (sectionId: string, oldIndex: number, newIndex: number) => {
       setState((prev) => ({
         ...prev,
-        [category]: [...prev[category], newItem],
+        sections: prev.sections.map((section) =>
+          section.id === sectionId
+            ? { ...section, items: arrayMove(section.items, oldIndex, newIndex) }
+            : section
+        ),
       }));
     },
     []
   );
 
-  const removeItem = useCallback(
-    (category: "materials" | "labor" | "miscellaneous", itemId: string) => {
+  const updateSection = useCallback(
+    (sectionId: string, updates: Partial<CostSection>) => {
       setState((prev) => ({
         ...prev,
-        [category]: prev[category].filter((item) => item.id !== itemId),
+        sections: prev.sections.map((section) =>
+          section.id === sectionId ? { ...section, ...updates } : section
+        ),
       }));
     },
     []
   );
+
+  const addSection = useCallback(() => {
+    const newSection: CostSection = {
+      id: `section-${Date.now()}`,
+      name: "New Section",
+      icon: "Folder",
+      color: "bg-gray-600",
+      items: [],
+    };
+    setState((prev) => ({
+      ...prev,
+      sections: [...prev.sections, newSection],
+    }));
+  }, []);
+
+  const removeSection = useCallback((sectionId: string) => {
+    setState((prev) => ({
+      ...prev,
+      sections: prev.sections.filter((section) => section.id !== sectionId),
+    }));
+  }, []);
 
   const loadTemplate = useCallback((templateData: CalculatorState) => {
     setState(JSON.parse(JSON.stringify(templateData)));
@@ -80,23 +157,25 @@ export const useCalculator = () => {
     setState(getEmptyState());
   }, []);
 
-  const calculateCategoryTotal = useCallback((items: CostItem[]) => {
+  const calculateSectionTotal = useCallback((items: CostItem[]) => {
     return items.reduce((sum, item) => sum + item.quantity * item.unitPrice, 0);
   }, []);
 
   const totals = useMemo(() => {
-    const materialsTotal = calculateCategoryTotal(state.materials);
-    const laborTotal = calculateCategoryTotal(state.labor);
-    const miscTotal = calculateCategoryTotal(state.miscellaneous);
-    const grandTotal = materialsTotal + laborTotal + miscTotal;
+    const sectionTotals: Record<string, number> = {};
+    let grandTotal = 0;
+
+    state.sections.forEach((section) => {
+      const total = calculateSectionTotal(section.items);
+      sectionTotals[section.id] = total;
+      grandTotal += total;
+    });
 
     return {
-      materials: materialsTotal,
-      labor: laborTotal,
-      miscellaneous: miscTotal,
+      ...sectionTotals,
       grandTotal,
     };
-  }, [state.materials, state.labor, state.miscellaneous, calculateCategoryTotal]);
+  }, [state.sections, calculateSectionTotal]);
 
   const ratePerSqft = useMemo(() => {
     if (state.projectInfo.workingArea > 0) {
@@ -111,6 +190,11 @@ export const useCalculator = () => {
     updateItem,
     addItem,
     removeItem,
+    duplicateItem,
+    reorderItems,
+    updateSection,
+    addSection,
+    removeSection,
     loadTemplate,
     resetCalculator,
     totals,
