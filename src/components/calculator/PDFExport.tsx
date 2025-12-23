@@ -608,6 +608,10 @@ export const generatePDFContent = ({ state, totals, ratePerSqft }: PDFExportProp
             <p>${projectInfo.workingArea ? `${projectInfo.workingArea.toLocaleString()} sqft` : "—"}</p>
           </div>
           <div class="detail-item">
+            <label>Cost per Sqft</label>
+            <p>${projectInfo.workingArea > 0 ? formatCurrency(totals.grandTotal / projectInfo.workingArea) : "—"}</p>
+          </div>
+          <div class="detail-item">
             <label>Notes</label>
             <p>${projectInfo.notes || "—"}</p>
           </div>
