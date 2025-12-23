@@ -111,28 +111,82 @@ export const PDFPreviewModal = ({
           {totalValue > 0 && (
             <div className="bg-gray-50 rounded-lg p-4">
               <h3 className="text-sm font-semibold text-blue-600 mb-3">Cost Distribution by Section</h3>
-              <div className="space-y-3">
-                {chartData.map((item, index) => {
-                  const percentage = (item.value / totalValue) * 100;
-                  const colors = ["#3b82f6", "#22c55e", "#f59e0b", "#8b5cf6", "#ef4444", "#06b6d4"];
-                  return (
-                    <div key={item.name} className="space-y-1">
-                      <div className="flex justify-between text-xs">
-                        <span className="font-semibold text-gray-900">{item.name}</span>
-                        <span className="font-medium text-gray-700">{formatCurrency(item.value)} ({percentage.toFixed(1)}%)</span>
+              <div className="flex gap-6">
+                {/* Pie Chart */}
+                <div className="flex flex-col items-center gap-2">
+                  <svg width="120" height="120" viewBox="0 0 120 120">
+                    {(() => {
+                      const colors = ["#3b82f6", "#22c55e", "#f59e0b", "#8b5cf6", "#ef4444", "#06b6d4"];
+                      const cx = 60, cy = 60, radius = 50;
+                      let currentAngle = -90;
+                      
+                      return chartData.map((item, index) => {
+                        const percentage = (item.value / totalValue) * 100;
+                        const angle = (percentage / 100) * 360;
+                        const startAngle = currentAngle;
+                        const endAngle = currentAngle + angle;
+                        currentAngle = endAngle;
+                        
+                        const startRad = (startAngle * Math.PI) / 180;
+                        const endRad = (endAngle * Math.PI) / 180;
+                        const x1 = cx + radius * Math.cos(startRad);
+                        const y1 = cy + radius * Math.sin(startRad);
+                        const x2 = cx + radius * Math.cos(endRad);
+                        const y2 = cy + radius * Math.sin(endRad);
+                        const largeArc = angle > 180 ? 1 : 0;
+                        
+                        if (chartData.length === 1) {
+                          return <circle key={item.name} cx={cx} cy={cy} r={radius} fill={colors[index % colors.length]} />;
+                        }
+                        
+                        return (
+                          <path
+                            key={item.name}
+                            d={`M${cx},${cy} L${x1},${y1} A${radius},${radius} 0 ${largeArc},1 ${x2},${y2} Z`}
+                            fill={colors[index % colors.length]}
+                          />
+                        );
+                      });
+                    })()}
+                    <circle cx="60" cy="60" r="25" fill="white" />
+                  </svg>
+                  <div className="flex flex-wrap gap-2 justify-center">
+                    {chartData.map((item, index) => {
+                      const colors = ["#3b82f6", "#22c55e", "#f59e0b", "#8b5cf6", "#ef4444", "#06b6d4"];
+                      return (
+                        <div key={item.name} className="flex items-center gap-1 text-[10px]">
+                          <div className="w-2 h-2 rounded-sm" style={{ backgroundColor: colors[index % colors.length] }} />
+                          <span>{item.name}</span>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+                
+                {/* Bar Chart */}
+                <div className="flex-1 space-y-2">
+                  {chartData.map((item, index) => {
+                    const percentage = (item.value / totalValue) * 100;
+                    const colors = ["#3b82f6", "#22c55e", "#f59e0b", "#8b5cf6", "#ef4444", "#06b6d4"];
+                    return (
+                      <div key={item.name} className="space-y-1">
+                        <div className="flex justify-between text-xs">
+                          <span className="font-semibold text-gray-900">{item.name}</span>
+                          <span className="font-medium text-gray-700">{formatCurrency(item.value)} ({percentage.toFixed(1)}%)</span>
+                        </div>
+                        <div className="h-3 bg-gray-200 rounded-full overflow-hidden">
+                          <div
+                            className="h-full rounded-full transition-all"
+                            style={{
+                              width: `${percentage}%`,
+                              backgroundColor: colors[index % colors.length],
+                            }}
+                          />
+                        </div>
                       </div>
-                      <div className="h-3 bg-gray-200 rounded-full overflow-hidden">
-                        <div
-                          className="h-full rounded-full transition-all"
-                          style={{
-                            width: `${percentage}%`,
-                            backgroundColor: colors[index % colors.length],
-                          }}
-                        />
-                      </div>
-                    </div>
-                  );
-                })}
+                    );
+                  })}
+                </div>
               </div>
             </div>
           )}

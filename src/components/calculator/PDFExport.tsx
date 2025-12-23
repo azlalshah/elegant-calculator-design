@@ -109,7 +109,48 @@ const generateChartSVG = (sections: CostSection[], totals: Record<string, number
 
   const colors = ["#3b82f6", "#22c55e", "#f59e0b", "#8b5cf6", "#ef4444", "#06b6d4"];
 
-  // Generate HTML-based horizontal bar chart (same style as AnalyticsPanel)
+  // Generate pie chart SVG
+  const radius = 70;
+  const cx = 80;
+  const cy = 80;
+  let currentAngle = -90; // Start from top
+
+  const pieSlices = chartData.map((item, index) => {
+    const percentage = (item.value / grandTotal) * 100;
+    const angle = (percentage / 100) * 360;
+    const startAngle = currentAngle;
+    const endAngle = currentAngle + angle;
+    currentAngle = endAngle;
+
+    const startRad = (startAngle * Math.PI) / 180;
+    const endRad = (endAngle * Math.PI) / 180;
+    const x1 = cx + radius * Math.cos(startRad);
+    const y1 = cy + radius * Math.sin(startRad);
+    const x2 = cx + radius * Math.cos(endRad);
+    const y2 = cy + radius * Math.sin(endRad);
+    const largeArc = angle > 180 ? 1 : 0;
+    const color = colors[index % colors.length];
+
+    if (chartData.length === 1) {
+      return `<circle cx="${cx}" cy="${cy}" r="${radius}" fill="${color}" />`;
+    }
+
+    return `<path d="M${cx},${cy} L${x1},${y1} A${radius},${radius} 0 ${largeArc},1 ${x2},${y2} Z" fill="${color}" />`;
+  }).join("");
+
+  // Generate legend items
+  const legendItems = chartData.map((item, index) => {
+    const percentage = (item.value / grandTotal) * 100;
+    const color = colors[index % colors.length];
+    return `
+      <div class="legend-item">
+        <span class="legend-color" style="background-color: ${color};"></span>
+        <span class="legend-text">${item.name}</span>
+      </div>
+    `;
+  }).join("");
+
+  // Generate HTML-based horizontal bar chart
   const bars = chartData.map((item, index) => {
     const percentage = (item.value / grandTotal) * 100;
     const color = colors[index % colors.length];
@@ -130,8 +171,21 @@ const generateChartSVG = (sections: CostSection[], totals: Record<string, number
   return `
     <div class="chart-section">
       <h3>Cost Distribution by Section</h3>
-      <div class="chart-container horizontal-bars">
-        ${bars}
+      <div class="charts-wrapper">
+        <div class="pie-chart-container">
+          <svg width="160" height="160" viewBox="0 0 160 160">
+            ${pieSlices}
+            <circle cx="${cx}" cy="${cy}" r="35" fill="white" />
+            <text x="${cx}" y="${cy - 5}" text-anchor="middle" font-size="10" fill="#666">Total</text>
+            <text x="${cx}" y="${cy + 10}" text-anchor="middle" font-size="11" font-weight="bold" fill="#1a1a1a">${formatCurrency(grandTotal)}</text>
+          </svg>
+          <div class="pie-legend">
+            ${legendItems}
+          </div>
+        </div>
+        <div class="bar-chart-container">
+          ${bars}
+        </div>
       </div>
     </div>
   `;
@@ -312,6 +366,45 @@ export const generatePDFContent = ({ state, totals, ratePerSqft }: PDFExportProp
           padding-bottom: 5px;
           border-bottom: 1px solid #e2e8f0;
         }
+        .charts-wrapper {
+          display: flex;
+          gap: 30px;
+          padding: 15px;
+          background: #f8fafc;
+          border-radius: 8px;
+        }
+        .pie-chart-container {
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          gap: 10px;
+          min-width: 180px;
+        }
+        .pie-legend {
+          display: flex;
+          flex-direction: column;
+          gap: 4px;
+        }
+        .legend-item {
+          display: flex;
+          align-items: center;
+          gap: 6px;
+          font-size: 9px;
+        }
+        .legend-color {
+          width: 10px;
+          height: 10px;
+          border-radius: 2px;
+        }
+        .legend-text {
+          color: #374151;
+        }
+        .bar-chart-container {
+          flex: 1;
+          display: flex;
+          flex-direction: column;
+          gap: 10px;
+        }
         .chart-container {
           padding: 15px;
           background: #f8fafc;
@@ -350,7 +443,6 @@ export const generatePDFContent = ({ state, totals, ratePerSqft }: PDFExportProp
         .bar-fill {
           height: 100%;
           border-radius: 6px;
-          transition: width 0.3s ease;
         }
         .summary {
           background: #1e3a5f;
