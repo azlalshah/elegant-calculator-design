@@ -13,6 +13,8 @@ const Index = () => {
     state,
     updateProjectInfo,
     updateItem,
+    addItem,
+    removeItem,
     loadTemplate,
     resetCalculator,
     totals,
@@ -54,6 +56,8 @@ const Index = () => {
               miscellaneous={state.miscellaneous}
               totals={totals}
               onUpdateItem={updateItem}
+              onAddItem={addItem}
+              onRemoveItem={removeItem}
             />
           </div>
 

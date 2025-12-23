@@ -20,9 +20,8 @@ const formatCurrency = (amount: number) => {
   }).format(amount);
 };
 
-const renderItems = (items: CostItem[], title: string) => {
-  const activeItems = items.filter((item) => item.quantity > 0 && item.unitPrice > 0);
-  if (activeItems.length === 0) return "";
+const renderItems = (items: CostItem[], title: string, subtotal: number) => {
+  if (items.length === 0) return "";
 
   return `
     <div class="section">
@@ -39,22 +38,96 @@ const renderItems = (items: CostItem[], title: string) => {
           </tr>
         </thead>
         <tbody>
-          ${activeItems
+          ${items
             .map(
               (item) => `
             <tr>
               <td>${item.name}</td>
               <td>${item.description}</td>
-              <td>${item.quantity}</td>
+              <td>${item.quantity || 0}</td>
               <td>${item.unit}</td>
-              <td>${formatCurrency(item.unitPrice)}</td>
-              <td>${formatCurrency(item.quantity * item.unitPrice)}</td>
+              <td>${item.unitPrice > 0 ? formatCurrency(item.unitPrice) : "—"}</td>
+              <td>${item.quantity * item.unitPrice > 0 ? formatCurrency(item.quantity * item.unitPrice) : "—"}</td>
             </tr>
           `
             )
             .join("")}
+          <tr class="subtotal-row">
+            <td colspan="5"><strong>Subtotal</strong></td>
+            <td><strong>${formatCurrency(subtotal)}</strong></td>
+          </tr>
         </tbody>
       </table>
+    </div>
+  `;
+};
+
+const generateChartSVG = (totals: { materials: number; labor: number; miscellaneous: number; grandTotal: number }) => {
+  if (totals.grandTotal === 0) return "";
+  
+  const materialsPercent = (totals.materials / totals.grandTotal) * 100;
+  const laborPercent = (totals.labor / totals.grandTotal) * 100;
+  const miscPercent = (totals.miscellaneous / totals.grandTotal) * 100;
+  
+  // Calculate pie chart segments
+  const radius = 80;
+  const cx = 100;
+  const cy = 100;
+  
+  const getArcPath = (startAngle: number, endAngle: number, color: string) => {
+    if (endAngle - startAngle === 0) return "";
+    const startRad = (startAngle - 90) * Math.PI / 180;
+    const endRad = (endAngle - 90) * Math.PI / 180;
+    const x1 = cx + radius * Math.cos(startRad);
+    const y1 = cy + radius * Math.sin(startRad);
+    const x2 = cx + radius * Math.cos(endRad);
+    const y2 = cy + radius * Math.sin(endRad);
+    const largeArc = (endAngle - startAngle) > 180 ? 1 : 0;
+    
+    return `<path d="M${cx},${cy} L${x1},${y1} A${radius},${radius} 0 ${largeArc},1 ${x2},${y2} Z" fill="${color}" />`;
+  };
+  
+  let currentAngle = 0;
+  const segments = [];
+  
+  if (totals.materials > 0) {
+    const angle = (materialsPercent / 100) * 360;
+    segments.push(getArcPath(currentAngle, currentAngle + angle, "#3b82f6"));
+    currentAngle += angle;
+  }
+  if (totals.labor > 0) {
+    const angle = (laborPercent / 100) * 360;
+    segments.push(getArcPath(currentAngle, currentAngle + angle, "#22c55e"));
+    currentAngle += angle;
+  }
+  if (totals.miscellaneous > 0) {
+    const angle = (miscPercent / 100) * 360;
+    segments.push(getArcPath(currentAngle, currentAngle + angle, "#f59e0b"));
+    currentAngle += angle;
+  }
+  
+  return `
+    <div class="chart-section">
+      <h3>Cost Distribution</h3>
+      <div class="chart-container">
+        <svg width="200" height="200" viewBox="0 0 200 200">
+          ${segments.join("")}
+        </svg>
+        <div class="chart-legend">
+          <div class="legend-item">
+            <span class="legend-color" style="background-color: #3b82f6;"></span>
+            <span>Materials: ${formatCurrency(totals.materials)} (${materialsPercent.toFixed(1)}%)</span>
+          </div>
+          <div class="legend-item">
+            <span class="legend-color" style="background-color: #22c55e;"></span>
+            <span>Labor: ${formatCurrency(totals.labor)} (${laborPercent.toFixed(1)}%)</span>
+          </div>
+          <div class="legend-item">
+            <span class="legend-color" style="background-color: #f59e0b;"></span>
+            <span>Miscellaneous: ${formatCurrency(totals.miscellaneous)} (${miscPercent.toFixed(1)}%)</span>
+          </div>
+        </div>
+      </div>
     </div>
   `;
 };
@@ -164,6 +237,47 @@ export const generatePDFContent = ({ state, totals, ratePerSqft }: PDFExportProp
         th:last-child, td:last-child {
           text-align: right;
         }
+        .subtotal-row {
+          background: #f8fafc;
+        }
+        .subtotal-row td {
+          border-bottom: 2px solid #3b82f6;
+        }
+        .chart-section {
+          margin-bottom: 24px;
+          page-break-inside: avoid;
+        }
+        .chart-section h3 {
+          font-size: 13px;
+          color: #3b82f6;
+          margin-bottom: 12px;
+          padding-bottom: 6px;
+          border-bottom: 1px solid #e2e8f0;
+        }
+        .chart-container {
+          display: flex;
+          align-items: center;
+          gap: 40px;
+          padding: 20px;
+          background: #f8fafc;
+          border-radius: 8px;
+        }
+        .chart-legend {
+          display: flex;
+          flex-direction: column;
+          gap: 12px;
+        }
+        .legend-item {
+          display: flex;
+          align-items: center;
+          gap: 10px;
+          font-size: 12px;
+        }
+        .legend-color {
+          width: 16px;
+          height: 16px;
+          border-radius: 4px;
+        }
         .summary {
           background: #1e3a5f;
           color: white;
@@ -203,6 +317,9 @@ export const generatePDFContent = ({ state, totals, ratePerSqft }: PDFExportProp
         @media print {
           body { padding: 20px; }
           .summary { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+          .chart-container { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+          .legend-color { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+          svg { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
         }
       </style>
     </head>
@@ -249,9 +366,11 @@ export const generatePDFContent = ({ state, totals, ratePerSqft }: PDFExportProp
         </div>
       </div>
 
-      ${renderItems(materials, "Materials")}
-      ${renderItems(labor, "Labor")}
-      ${renderItems(miscellaneous, "Miscellaneous")}
+      ${generateChartSVG(totals)}
+
+      ${renderItems(materials, "Materials", totals.materials)}
+      ${renderItems(labor, "Labor", totals.labor)}
+      ${renderItems(miscellaneous, "Miscellaneous", totals.miscellaneous)}
 
       <div class="summary">
         <h3>COST SUMMARY</h3>
