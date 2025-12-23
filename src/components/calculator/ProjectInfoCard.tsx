@@ -3,9 +3,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { ProjectInfo } from "@/types/calculator";
-import { MapPin, User, Briefcase, Clock, Ruler, FileText } from "lucide-react";
+import { MapPin, User, Briefcase, Clock, Ruler, FileText, Calculator } from "lucide-react";
 
 interface ProjectInfoCardProps {
   projectInfo: ProjectInfo;
@@ -14,11 +13,6 @@ interface ProjectInfoCardProps {
   grandTotal: number;
 }
 
-const categories = [
-  { value: "A Category", rate: 3800 },
-  { value: "B Category", rate: 2800 },
-  { value: "C Category", rate: 2200 },
-];
 
 export const ProjectInfoCard = ({ projectInfo, onUpdate, ratePerSqft, grandTotal }: ProjectInfoCardProps) => {
   const formatCurrency = (amount: number) => {
@@ -110,29 +104,32 @@ export const ProjectInfoCard = ({ projectInfo, onUpdate, ratePerSqft, grandTotal
             />
           </div>
           <div className="space-y-2">
-            <Label className="flex items-center gap-2 text-sm">
+            <Label htmlFor="category" className="flex items-center gap-2 text-sm">
               <FileText className="h-3.5 w-3.5 text-muted-foreground" />
               Category
             </Label>
-            <Select
+            <Input
+              id="category"
+              placeholder="Enter category"
               value={projectInfo.category}
-              onValueChange={(value) => {
-                const cat = categories.find((c) => c.value === value);
-                onUpdate({ category: value, ratePerSqft: cat?.rate || 3800 });
-              }}
-            >
-              <SelectTrigger>
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                {categories.map((cat) => (
-                  <SelectItem key={cat.value} value={cat.value}>
-                    {cat.value} ({formatCurrency(cat.rate)}/sqft)
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+              onChange={(e) => onUpdate({ category: e.target.value })}
+            />
           </div>
+        </div>
+
+        <div className="grid gap-4 sm:grid-cols-2">
+          <div className="space-y-2">
+            <Label className="flex items-center gap-2 text-sm">
+              <Calculator className="h-3.5 w-3.5 text-muted-foreground" />
+              Cost per Sqft
+            </Label>
+            <div className="flex h-9 items-center rounded-md border border-input bg-muted/50 px-3">
+              <span className="text-sm font-medium">
+                {projectInfo.workingArea > 0 ? formatCurrency(grandTotal / projectInfo.workingArea) : "—"}
+              </span>
+            </div>
+          </div>
+          <div></div>
         </div>
 
         <div className="space-y-2">
