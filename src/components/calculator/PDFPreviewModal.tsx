@@ -110,32 +110,29 @@ export const PDFPreviewModal = ({
           {/* Cost Distribution Chart Preview */}
           {totalValue > 0 && (
             <div className="bg-gray-50 rounded-lg p-4">
-              <h3 className="text-sm font-semibold text-blue-600 mb-3">Cost Distribution</h3>
-              <div className="flex items-center gap-6">
-                {/* Simple bar chart representation */}
-                <div className="flex-1 space-y-2">
-                  {chartData.map((item, index) => {
-                    const percentage = (item.value / totalValue) * 100;
-                    const colors = ["#3b82f6", "#22c55e", "#f59e0b", "#8b5cf6", "#ef4444", "#06b6d4"];
-                    return (
-                      <div key={item.name} className="space-y-1">
-                        <div className="flex justify-between text-xs">
-                          <span>{item.name}</span>
-                          <span className="font-medium">{formatCurrency(item.value)} ({percentage.toFixed(1)}%)</span>
-                        </div>
-                        <div className="h-3 bg-gray-200 rounded-full overflow-hidden">
-                          <div
-                            className="h-full rounded-full transition-all"
-                            style={{
-                              width: `${percentage}%`,
-                              backgroundColor: colors[index % colors.length],
-                            }}
-                          />
-                        </div>
+              <h3 className="text-sm font-semibold text-blue-600 mb-3">Cost Distribution by Section</h3>
+              <div className="space-y-3">
+                {chartData.map((item, index) => {
+                  const percentage = (item.value / totalValue) * 100;
+                  const colors = ["#3b82f6", "#22c55e", "#f59e0b", "#8b5cf6", "#ef4444", "#06b6d4"];
+                  return (
+                    <div key={item.name} className="space-y-1">
+                      <div className="flex justify-between text-xs">
+                        <span className="font-semibold text-gray-900">{item.name}</span>
+                        <span className="font-medium text-gray-700">{formatCurrency(item.value)} ({percentage.toFixed(1)}%)</span>
                       </div>
-                    );
-                  })}
-                </div>
+                      <div className="h-3 bg-gray-200 rounded-full overflow-hidden">
+                        <div
+                          className="h-full rounded-full transition-all"
+                          style={{
+                            width: `${percentage}%`,
+                            backgroundColor: colors[index % colors.length],
+                          }}
+                        />
+                      </div>
+                    </div>
+                  );
+                })}
               </div>
             </div>
           )}
