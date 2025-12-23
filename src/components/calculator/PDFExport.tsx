@@ -108,32 +108,30 @@ const generateChartSVG = (sections: CostSection[], totals: Record<string, number
   if (grandTotal === 0 || chartData.length === 0) return "";
 
   const colors = ["#3b82f6", "#22c55e", "#f59e0b", "#8b5cf6", "#ef4444", "#06b6d4"];
-  const barHeight = 24;
-  const maxWidth = 300;
 
+  // Generate HTML-based horizontal bar chart (same style as AnalyticsPanel)
   const bars = chartData.map((item, index) => {
     const percentage = (item.value / grandTotal) * 100;
-    const width = (percentage / 100) * maxWidth;
-    const y = index * (barHeight + 8);
     const color = colors[index % colors.length];
 
     return `
-      <g transform="translate(0, ${y})">
-        <rect x="0" y="0" width="${width}" height="${barHeight}" fill="${color}" rx="4"/>
-        <text x="${maxWidth + 10}" y="${barHeight / 2 + 4}" font-size="11" fill="#374151">${item.name}: ${formatCurrency(item.value)} (${percentage.toFixed(1)}%)</text>
-      </g>
+      <div class="bar-item">
+        <div class="bar-header">
+          <span class="bar-label">${item.name}</span>
+          <span class="bar-value">${formatCurrency(item.value)} (${percentage.toFixed(1)}%)</span>
+        </div>
+        <div class="bar-track">
+          <div class="bar-fill" style="width: ${percentage}%; background-color: ${color};"></div>
+        </div>
+      </div>
     `;
   }).join("");
 
-  const svgHeight = chartData.length * (barHeight + 8);
-
   return `
     <div class="chart-section">
-      <h3>Cost Distribution</h3>
-      <div class="chart-container">
-        <svg width="550" height="${svgHeight}" viewBox="0 0 550 ${svgHeight}">
-          ${bars}
-        </svg>
+      <h3>Cost Distribution by Section</h3>
+      <div class="chart-container horizontal-bars">
+        ${bars}
       </div>
     </div>
   `;
@@ -318,6 +316,41 @@ export const generatePDFContent = ({ state, totals, ratePerSqft }: PDFExportProp
           padding: 15px;
           background: #f8fafc;
           border-radius: 8px;
+        }
+        .horizontal-bars {
+          display: flex;
+          flex-direction: column;
+          gap: 12px;
+        }
+        .bar-item {
+          display: flex;
+          flex-direction: column;
+          gap: 4px;
+        }
+        .bar-header {
+          display: flex;
+          justify-content: space-between;
+          font-size: 11px;
+        }
+        .bar-label {
+          font-weight: 600;
+          color: #1a1a1a;
+        }
+        .bar-value {
+          font-weight: 500;
+          color: #374151;
+        }
+        .bar-track {
+          width: 100%;
+          height: 12px;
+          background: #e5e7eb;
+          border-radius: 6px;
+          overflow: hidden;
+        }
+        .bar-fill {
+          height: 100%;
+          border-radius: 6px;
+          transition: width 0.3s ease;
         }
         .summary {
           background: #1e3a5f;
