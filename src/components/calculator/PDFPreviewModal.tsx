@@ -112,50 +112,112 @@ export const PDFPreviewModal = ({
             <div className="bg-gray-50 rounded-lg p-4">
               <h3 className="text-sm font-semibold text-blue-600 mb-3">Cost Distribution by Section</h3>
               <div className="flex gap-6">
-                {/* Pie Chart */}
+                {/* 3D Pie Chart */}
                 <div className="flex flex-col items-center gap-2">
-                  <svg width="120" height="120" viewBox="0 0 120 120">
-                    {(() => {
-                      const colors = ["#3b82f6", "#22c55e", "#f59e0b", "#8b5cf6", "#ef4444", "#06b6d4"];
-                      const cx = 60, cy = 60, radius = 50;
-                      let currentAngle = -90;
-                      
-                      return chartData.map((item, index) => {
-                        const percentage = (item.value / totalValue) * 100;
-                        const angle = (percentage / 100) * 360;
-                        const startAngle = currentAngle;
-                        const endAngle = currentAngle + angle;
-                        currentAngle = endAngle;
+                  <div style={{ filter: 'drop-shadow(0 6px 12px rgba(0,0,0,0.15))' }}>
+                    <svg width="130" height="140" viewBox="0 0 130 140">
+                      <defs>
+                        {chartData.map((_, index) => {
+                          const colors = ["#3b82f6", "#22c55e", "#f59e0b", "#8b5cf6", "#ef4444", "#06b6d4"];
+                          const lightColors = ["#60a5fa", "#4ade80", "#fbbf24", "#a78bfa", "#f87171", "#22d3ee"];
+                          return (
+                            <linearGradient key={`grad-${index}`} id={`preview-grad-${index}`} x1="0%" y1="0%" x2="100%" y2="100%">
+                              <stop offset="0%" stopColor={lightColors[index % lightColors.length]} />
+                              <stop offset="100%" stopColor={colors[index % colors.length]} />
+                            </linearGradient>
+                          );
+                        })}
+                        <linearGradient id="center-gradient" x1="0%" y1="0%" x2="0%" y2="100%">
+                          <stop offset="0%" stopColor="#ffffff" />
+                          <stop offset="100%" stopColor="#f1f5f9" />
+                        </linearGradient>
+                      </defs>
+                      {/* 3D Depth shadow */}
+                      {(() => {
+                        const colors = ["#3b82f6", "#22c55e", "#f59e0b", "#8b5cf6", "#ef4444", "#06b6d4"];
+                        const cx = 65, cy = 60, radius = 50, depth = 12;
+                        let currentAngle = -90;
                         
-                        const startRad = (startAngle * Math.PI) / 180;
-                        const endRad = (endAngle * Math.PI) / 180;
-                        const x1 = cx + radius * Math.cos(startRad);
-                        const y1 = cy + radius * Math.sin(startRad);
-                        const x2 = cx + radius * Math.cos(endRad);
-                        const y2 = cy + radius * Math.sin(endRad);
-                        const largeArc = angle > 180 ? 1 : 0;
+                        return chartData.map((item, index) => {
+                          const percentage = (item.value / totalValue) * 100;
+                          const angle = (percentage / 100) * 360;
+                          const startAngle = currentAngle;
+                          currentAngle += angle;
+                          
+                          // Only show depth for bottom half
+                          if (startAngle > -90 && startAngle < 90) {
+                            const darkColor = colors[index % colors.length];
+                            const r = Math.max(0, parseInt(darkColor.slice(1, 3), 16) - 60);
+                            const g = Math.max(0, parseInt(darkColor.slice(3, 5), 16) - 60);
+                            const b = Math.max(0, parseInt(darkColor.slice(5, 7), 16) - 60);
+                            return (
+                              <ellipse 
+                                key={`depth-${index}`}
+                                cx={cx} 
+                                cy={cy + depth} 
+                                rx={radius} 
+                                ry={radius * 0.25} 
+                                fill={`rgb(${r},${g},${b})`}
+                                opacity={0.6}
+                              />
+                            );
+                          }
+                          return null;
+                        });
+                      })()}
+                      {/* Main pie slices with gradient */}
+                      {(() => {
+                        const cx = 65, cy = 60, radius = 50;
+                        let currentAngle = -90;
                         
-                        if (chartData.length === 1) {
-                          return <circle key={item.name} cx={cx} cy={cy} r={radius} fill={colors[index % colors.length]} />;
-                        }
-                        
-                        return (
-                          <path
-                            key={item.name}
-                            d={`M${cx},${cy} L${x1},${y1} A${radius},${radius} 0 ${largeArc},1 ${x2},${y2} Z`}
-                            fill={colors[index % colors.length]}
-                          />
-                        );
-                      });
-                    })()}
-                    <circle cx="60" cy="60" r="25" fill="white" />
-                  </svg>
-                  <div className="flex flex-wrap gap-2 justify-center">
+                        return chartData.map((item, index) => {
+                          const percentage = (item.value / totalValue) * 100;
+                          const angle = (percentage / 100) * 360;
+                          const startAngle = currentAngle;
+                          const endAngle = currentAngle + angle;
+                          currentAngle = endAngle;
+                          
+                          const startRad = (startAngle * Math.PI) / 180;
+                          const endRad = (endAngle * Math.PI) / 180;
+                          const x1 = cx + radius * Math.cos(startRad);
+                          const y1 = cy + radius * Math.sin(startRad);
+                          const x2 = cx + radius * Math.cos(endRad);
+                          const y2 = cy + radius * Math.sin(endRad);
+                          const largeArc = angle > 180 ? 1 : 0;
+                          
+                          if (chartData.length === 1) {
+                            return <circle key={item.name} cx={cx} cy={cy} r={radius} fill={`url(#preview-grad-${index})`} />;
+                          }
+                          
+                          return (
+                            <path
+                              key={item.name}
+                              d={`M${cx},${cy} L${x1},${y1} A${radius},${radius} 0 ${largeArc},1 ${x2},${y2} Z`}
+                              fill={`url(#preview-grad-${index})`}
+                              stroke="white"
+                              strokeWidth="1"
+                            />
+                          );
+                        });
+                      })()}
+                      {/* Center circle with gradient */}
+                      <circle cx="65" cy="60" r="22" fill="url(#center-gradient)" stroke="#e2e8f0" strokeWidth="1" />
+                      <text x="65" y="57" textAnchor="middle" fontSize="8" fill="#666">Total</text>
+                      <text x="65" y="68" textAnchor="middle" fontSize="9" fontWeight="bold" fill="#1a1a1a">
+                        {formatCurrency(totalValue).replace('PKR', '').trim()}
+                      </text>
+                    </svg>
+                  </div>
+                  <div className="flex flex-wrap gap-2 justify-center max-w-[140px]">
                     {chartData.map((item, index) => {
                       const colors = ["#3b82f6", "#22c55e", "#f59e0b", "#8b5cf6", "#ef4444", "#06b6d4"];
+                      const lightColors = ["#60a5fa", "#4ade80", "#fbbf24", "#a78bfa", "#f87171", "#22d3ee"];
                       return (
                         <div key={item.name} className="flex items-center gap-1 text-[10px]">
-                          <div className="w-2 h-2 rounded-sm" style={{ backgroundColor: colors[index % colors.length] }} />
+                          <div 
+                            className="w-2 h-2 rounded-sm" 
+                            style={{ background: `linear-gradient(135deg, ${lightColors[index % lightColors.length]}, ${colors[index % colors.length]})` }} 
+                          />
                           <span>{item.name}</span>
                         </div>
                       );
@@ -163,23 +225,24 @@ export const PDFPreviewModal = ({
                   </div>
                 </div>
                 
-                {/* Bar Chart */}
+                {/* Bar Chart with gradients */}
                 <div className="flex-1 space-y-2">
                   {chartData.map((item, index) => {
                     const percentage = (item.value / totalValue) * 100;
                     const colors = ["#3b82f6", "#22c55e", "#f59e0b", "#8b5cf6", "#ef4444", "#06b6d4"];
+                    const lightColors = ["#60a5fa", "#4ade80", "#fbbf24", "#a78bfa", "#f87171", "#22d3ee"];
                     return (
                       <div key={item.name} className="space-y-1">
                         <div className="flex justify-between text-xs">
                           <span className="font-semibold text-gray-900">{item.name}</span>
                           <span className="font-medium text-gray-700">{formatCurrency(item.value)} ({percentage.toFixed(1)}%)</span>
                         </div>
-                        <div className="h-3 bg-gray-200 rounded-full overflow-hidden">
+                        <div className="h-3 bg-gray-200 rounded-full overflow-hidden shadow-inner">
                           <div
                             className="h-full rounded-full transition-all"
                             style={{
                               width: `${percentage}%`,
-                              backgroundColor: colors[index % colors.length],
+                              background: `linear-gradient(90deg, ${lightColors[index % lightColors.length]}, ${colors[index % colors.length]})`,
                             }}
                           />
                         </div>
