@@ -10,6 +10,8 @@ const emptyState: CalculatorState = {
     category: "A Category",
     ratePerSqft: 3800,
     notes: "",
+    taxPercentage: 0,
+    discountPercentage: 0,
   },
   sections: [
     {
@@ -100,6 +102,8 @@ const g2FinishingTemplate: CalculatorState = {
     category: "A Category",
     ratePerSqft: 3800,
     notes: "Complete finishing work for G+2 residential building",
+    taxPercentage: 0,
+    discountPercentage: 0,
   },
   sections: [
     {
@@ -176,6 +180,8 @@ const g3StructureTemplate: CalculatorState = {
     category: "B Category",
     ratePerSqft: 2800,
     notes: "Grey structure for G+3 commercial building",
+    taxPercentage: 0,
+    discountPercentage: 0,
   },
   sections: [
     {

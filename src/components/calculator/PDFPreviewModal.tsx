@@ -315,6 +315,22 @@ export const PDFPreviewModal = ({
                 </div>
               );
             })}
+            <div className="flex justify-between py-1 border-t border-white/20 mt-2 pt-2">
+              <span>Subtotal</span>
+              <span>{formatCurrency(totals.subtotal)}</span>
+            </div>
+            {projectInfo.discountPercentage > 0 && (
+              <div className="flex justify-between py-1 text-green-400">
+                <span>Discount ({projectInfo.discountPercentage}%)</span>
+                <span>-{formatCurrency(totals.discountAmount)}</span>
+              </div>
+            )}
+            {projectInfo.taxPercentage > 0 && (
+              <div className="flex justify-between py-1 text-yellow-400">
+                <span>Tax ({projectInfo.taxPercentage}%)</span>
+                <span>+{formatCurrency(totals.taxAmount)}</span>
+              </div>
+            )}
             <div className="flex justify-between py-2 mt-2 border-t border-white/20 text-lg font-bold">
               <span>Grand Total</span>
               <span>{formatCurrency(totals.grandTotal)}</span>

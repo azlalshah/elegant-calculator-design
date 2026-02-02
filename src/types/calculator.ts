@@ -25,6 +25,8 @@ export interface ProjectInfo {
   category: string;
   ratePerSqft: number;
   notes: string;
+  taxPercentage: number;
+  discountPercentage: number;
 }
 
 export interface CalculatorState {
