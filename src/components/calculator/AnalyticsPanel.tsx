@@ -84,9 +84,48 @@ export const AnalyticsPanel = ({ totals, sections, workingArea, duration, taxPer
         <CardHeader>
           <CardTitle className="text-xl">Analytics</CardTitle>
         </CardHeader>
-        <CardContent>
-          <div className="flex h-48 items-center justify-center text-muted-foreground">
+        <CardContent className="space-y-6">
+          <div className="flex h-32 items-center justify-center text-muted-foreground">
             <p className="text-center text-sm">Add items to see cost breakdown</p>
+          </div>
+          
+          {/* Tax & Discount Inputs - Always visible */}
+          <div className="space-y-3">
+            <p className="text-sm font-medium text-muted-foreground">Adjustments</p>
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-1.5">
+                <Label htmlFor="discount-empty" className="text-xs flex items-center gap-1">
+                  <Tag className="h-3 w-3 text-success" />
+                  Discount %
+                </Label>
+                <Input
+                  id="discount-empty"
+                  type="number"
+                  min="0"
+                  max="100"
+                  value={discountPercentage || ""}
+                  onChange={(e) => onUpdateProjectInfo({ discountPercentage: parseFloat(e.target.value) || 0 })}
+                  placeholder="0"
+                  className="h-8"
+                />
+              </div>
+              <div className="space-y-1.5">
+                <Label htmlFor="tax-empty" className="text-xs flex items-center gap-1">
+                  <Percent className="h-3 w-3 text-warning" />
+                  Tax %
+                </Label>
+                <Input
+                  id="tax-empty"
+                  type="number"
+                  min="0"
+                  max="100"
+                  value={taxPercentage || ""}
+                  onChange={(e) => onUpdateProjectInfo({ taxPercentage: parseFloat(e.target.value) || 0 })}
+                  placeholder="0"
+                  className="h-8"
+                />
+              </div>
+            </div>
           </div>
         </CardContent>
       </Card>
