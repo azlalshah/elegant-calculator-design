@@ -565,6 +565,11 @@ export const generatePDFContent = ({ state, totals, ratePerSqft }: PDFExportProp
           body { padding: 15px; }
           .summary { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
           .chart-container { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+          .charts-wrapper { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+          .bar-chart-container { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+          .bar-track { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+          .bar-fill { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+          .bar-color-box { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
           svg { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
           th { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
           .subtotal-row { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
