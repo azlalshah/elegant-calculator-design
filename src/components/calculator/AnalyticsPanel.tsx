@@ -1,18 +1,23 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { PieChart, Pie, Cell, ResponsiveContainer, Legend, Tooltip, BarChart, Bar, XAxis, YAxis, CartesianGrid } from "recharts";
-import { TrendingUp, Layers, DollarSign } from "lucide-react";
-import { CostSection } from "@/types/calculator";
+import { TrendingUp, Layers, DollarSign, Percent, Tag } from "lucide-react";
+import { CostSection, ProjectInfo } from "@/types/calculator";
 
 interface AnalyticsPanelProps {
   totals: Record<string, number>;
   sections: CostSection[];
   workingArea: number;
   duration: string;
+  taxPercentage: number;
+  discountPercentage: number;
+  onUpdateProjectInfo: (updates: Partial<ProjectInfo>) => void;
 }
 
 const COLORS = ["#3b82f6", "#22c55e", "#f59e0b", "#8b5cf6", "#ef4444", "#06b6d4"];
 
-export const AnalyticsPanel = ({ totals, sections, workingArea, duration }: AnalyticsPanelProps) => {
+export const AnalyticsPanel = ({ totals, sections, workingArea, duration, taxPercentage, discountPercentage, onUpdateProjectInfo }: AnalyticsPanelProps) => {
   const chartData = sections
     .map((section, index) => ({
       name: section.name,
@@ -170,6 +175,45 @@ export const AnalyticsPanel = ({ totals, sections, workingArea, duration }: Anal
           ))}
         </div>
 
+        {/* Tax & Discount Inputs */}
+        <div className="space-y-3">
+          <p className="text-sm font-medium text-muted-foreground">Adjustments</p>
+          <div className="grid grid-cols-2 gap-3">
+            <div className="space-y-1.5">
+              <Label htmlFor="discount" className="text-xs flex items-center gap-1">
+                <Tag className="h-3 w-3 text-success" />
+                Discount %
+              </Label>
+              <Input
+                id="discount"
+                type="number"
+                min="0"
+                max="100"
+                value={discountPercentage || ""}
+                onChange={(e) => onUpdateProjectInfo({ discountPercentage: parseFloat(e.target.value) || 0 })}
+                placeholder="0"
+                className="h-8"
+              />
+            </div>
+            <div className="space-y-1.5">
+              <Label htmlFor="tax" className="text-xs flex items-center gap-1">
+                <Percent className="h-3 w-3 text-warning" />
+                Tax %
+              </Label>
+              <Input
+                id="tax"
+                type="number"
+                min="0"
+                max="100"
+                value={taxPercentage || ""}
+                onChange={(e) => onUpdateProjectInfo({ taxPercentage: parseFloat(e.target.value) || 0 })}
+                placeholder="0"
+                className="h-8"
+              />
+            </div>
+          </div>
+        </div>
+
         {/* Category Breakdown */}
         <div className="space-y-2">
           <p className="text-sm font-medium text-muted-foreground">Breakdown</p>
@@ -189,12 +233,36 @@ export const AnalyticsPanel = ({ totals, sections, workingArea, duration }: Anal
                   <span className="text-sm font-medium">
                     {formatCurrency(sectionTotal)}
                     <span className="ml-1 text-xs text-muted-foreground">
-                      ({totals.grandTotal > 0 ? Math.round((sectionTotal / totals.grandTotal) * 100) : 0}%)
+                      ({totals.subtotal > 0 ? Math.round((sectionTotal / totals.subtotal) * 100) : 0}%)
                     </span>
                   </span>
                 </div>
               );
             })}
+            {/* Subtotal */}
+            <div className="flex items-center justify-between border-t border-border pt-2 mt-2">
+              <span className="text-sm text-muted-foreground">Subtotal</span>
+              <span className="text-sm font-medium">{formatCurrency(totals.subtotal)}</span>
+            </div>
+            {/* Discount */}
+            {discountPercentage > 0 && (
+              <div className="flex items-center justify-between">
+                <span className="text-sm text-success">Discount ({discountPercentage}%)</span>
+                <span className="text-sm font-medium text-success">-{formatCurrency(totals.discountAmount)}</span>
+              </div>
+            )}
+            {/* Tax */}
+            {taxPercentage > 0 && (
+              <div className="flex items-center justify-between">
+                <span className="text-sm text-warning">Tax ({taxPercentage}%)</span>
+                <span className="text-sm font-medium text-warning">+{formatCurrency(totals.taxAmount)}</span>
+              </div>
+            )}
+            {/* Grand Total */}
+            <div className="flex items-center justify-between border-t border-border pt-2">
+              <span className="text-sm font-semibold">Grand Total</span>
+              <span className="text-base font-bold text-primary">{formatCurrency(totals.grandTotal)}</span>
+            </div>
           </div>
         </div>
       </CardContent>

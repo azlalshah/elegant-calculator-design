@@ -203,19 +203,27 @@ export const useCalculator = () => {
 
   const totals = useMemo(() => {
     const sectionTotals: Record<string, number> = {};
-    let grandTotal = 0;
+    let subtotal = 0;
 
     state.sections.forEach((section) => {
       const total = calculateSectionTotal(section.items);
       sectionTotals[section.id] = total;
-      grandTotal += total;
+      subtotal += total;
     });
+
+    const discountAmount = (subtotal * state.projectInfo.discountPercentage) / 100;
+    const afterDiscount = subtotal - discountAmount;
+    const taxAmount = (afterDiscount * state.projectInfo.taxPercentage) / 100;
+    const grandTotal = afterDiscount + taxAmount;
 
     return {
       ...sectionTotals,
+      subtotal,
+      discountAmount,
+      taxAmount,
       grandTotal,
     };
-  }, [state.sections, calculateSectionTotal]);
+  }, [state.sections, state.projectInfo.taxPercentage, state.projectInfo.discountPercentage, calculateSectionTotal]);
 
   const ratePerSqft = useMemo(() => {
     if (state.projectInfo.workingArea > 0) {

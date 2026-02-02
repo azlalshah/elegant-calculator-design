@@ -641,6 +641,22 @@ export const generatePDFContent = ({ state, totals, ratePerSqft }: PDFExportProp
         `
           )
           .join("")}
+        <div class="summary-row" style="border-top: 1px solid rgba(255,255,255,0.2); margin-top: 8px; padding-top: 8px;">
+          <span>Subtotal</span>
+          <span>${formatCurrency(totals.subtotal)}</span>
+        </div>
+        ${projectInfo.discountPercentage > 0 ? `
+        <div class="summary-row" style="color: #4ade80;">
+          <span>Discount (${projectInfo.discountPercentage}%)</span>
+          <span>-${formatCurrency(totals.discountAmount)}</span>
+        </div>
+        ` : ''}
+        ${projectInfo.taxPercentage > 0 ? `
+        <div class="summary-row" style="color: #fbbf24;">
+          <span>Tax (${projectInfo.taxPercentage}%)</span>
+          <span>+${formatCurrency(totals.taxAmount)}</span>
+        </div>
+        ` : ''}
         <div class="summary-row total">
           <span>Grand Total</span>
           <span>${formatCurrency(totals.grandTotal)}</span>

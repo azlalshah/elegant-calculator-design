@@ -84,6 +84,9 @@ const Index = () => {
               sections={state.sections}
               workingArea={state.projectInfo.workingArea}
               duration={state.projectInfo.duration}
+              taxPercentage={state.projectInfo.taxPercentage}
+              discountPercentage={state.projectInfo.discountPercentage}
+              onUpdateProjectInfo={updateProjectInfo}
             />
           </div>
         </div>
@@ -91,6 +94,11 @@ const Index = () => {
 
       <ActionBar
         grandTotal={totals.grandTotal}
+        subtotal={totals.subtotal}
+        discountAmount={totals.discountAmount}
+        taxAmount={totals.taxAmount}
+        taxPercentage={state.projectInfo.taxPercentage}
+        discountPercentage={state.projectInfo.discountPercentage}
         onReset={resetCalculator}
         onExportPDF={handleOpenPreview}
       />
