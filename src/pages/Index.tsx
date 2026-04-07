@@ -9,10 +9,12 @@ import { PDFPreviewModal } from "@/components/calculator/PDFPreviewModal";
 import { useCalculator } from "@/hooks/useCalculator";
 import { exportToPDF } from "@/components/calculator/PDFExport";
 import { useSavedEstimates } from "@/hooks/useSavedEstimates";
+import { useMasterPriceList } from "@/hooks/useMasterPriceList";
 import { useToast } from "@/hooks/use-toast";
 
 const Index = () => {
   const { saveEstimate } = useSavedEstimates();
+  const { syncFromCalculator } = useMasterPriceList();
   const { toast } = useToast();
   const {
     state,
@@ -44,7 +46,8 @@ const Index = () => {
   const handleExportPDF = () => {
     exportToPDF({ state, totals, ratePerSqft });
     saveEstimate(state, totals, ratePerSqft);
-    toast({ title: "Auto-Saved", description: "Estimate saved to your Saved Estimates list." });
+    syncFromCalculator(state.sections);
+    toast({ title: "Auto-Saved", description: "Estimate & prices synced to Master Price List." });
     setShowPreview(false);
   };
 
