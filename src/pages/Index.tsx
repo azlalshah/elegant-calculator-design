@@ -46,7 +46,8 @@ const Index = () => {
   const handleExportPDF = () => {
     exportToPDF({ state, totals, ratePerSqft });
     saveEstimate(state, totals, ratePerSqft);
-    toast({ title: "Auto-Saved", description: "Estimate saved to your Saved Estimates list." });
+    syncFromCalculator(state.sections);
+    toast({ title: "Auto-Saved", description: "Estimate & prices synced to Master Price List." });
     setShowPreview(false);
   };
 
