@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import { Header } from "@/components/calculator/Header";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
