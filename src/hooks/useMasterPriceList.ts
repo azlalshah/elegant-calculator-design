@@ -3,6 +3,58 @@ import { MasterPriceItem, SavedEstimate } from "@/types/calculator";
 
 const MASTER_PRICES_KEY = "econ-master-prices";
 const SAVED_ESTIMATES_KEY = "econ-saved-estimates";
+const DEFAULT_ITEMS_LOADED_KEY = "econ-default-items-loaded";
+
+const DEFAULT_ITEMS: Omit<MasterPriceItem, "id">[] = [
+  // Raw Materials
+  { name: "Cement (OPC)", unitPrice: 1350, unit: "bag", icon: "Package", category: "Raw Materials" },
+  { name: "Sand (Reti)", unitPrice: 85, unit: "cft", icon: "Mountain", category: "Raw Materials" },
+  { name: "Crush (Bajri)", unitPrice: 110, unit: "cft", icon: "Mountain", category: "Raw Materials" },
+  { name: "Bricks (Eent)", unitPrice: 18, unit: "nos", icon: "Brick", category: "Raw Materials" },
+  { name: "Steel (Sariya)", unitPrice: 280, unit: "kg", icon: "Cylinder", category: "Raw Materials" },
+  { name: "Gravel (Margalla)", unitPrice: 95, unit: "cft", icon: "Mountain", category: "Raw Materials" },
+
+  // Labor
+  { name: "Mason (Mistri)", unitPrice: 2500, unit: "day", icon: "HardHat", category: "Labor" },
+  { name: "Helper (Mazdoor)", unitPrice: 1500, unit: "day", icon: "HardHat", category: "Labor" },
+  { name: "Electrician", unitPrice: 2500, unit: "day", icon: "Zap", category: "Labor" },
+  { name: "Plumber", unitPrice: 2500, unit: "day", icon: "Pipette", category: "Labor" },
+  { name: "Painter", unitPrice: 2000, unit: "day", icon: "Paintbrush", category: "Labor" },
+  { name: "Carpenter", unitPrice: 2500, unit: "day", icon: "Hammer", category: "Labor" },
+
+  // Finishing Materials
+  { name: "Floor Tiles", unitPrice: 120, unit: "sqft", icon: "Grid3x3", category: "Finishing" },
+  { name: "Wall Tiles", unitPrice: 90, unit: "sqft", icon: "LayoutGrid", category: "Finishing" },
+  { name: "Marble", unitPrice: 250, unit: "sqft", icon: "Square", category: "Finishing" },
+  { name: "Paint (Nippon/Diamond)", unitPrice: 8500, unit: "gallon", icon: "Paintbrush", category: "Finishing" },
+  { name: "Putty", unitPrice: 3500, unit: "bag", icon: "Palette", category: "Finishing" },
+  { name: "POP (Plaster of Paris)", unitPrice: 1200, unit: "bag", icon: "Package", category: "Finishing" },
+
+  // Electrical
+  { name: "Wire (3/29)", unitPrice: 12000, unit: "coil", icon: "Cable", category: "Electrical" },
+  { name: "Wire (7/29)", unitPrice: 26000, unit: "coil", icon: "Cable", category: "Electrical" },
+  { name: "Switch Board", unitPrice: 350, unit: "nos", icon: "Zap", category: "Electrical" },
+  { name: "LED Light", unitPrice: 1200, unit: "nos", icon: "Lightbulb", category: "Electrical" },
+
+  // Plumbing
+  { name: "PVC Pipe (4 inch)", unitPrice: 800, unit: "10ft", icon: "Pipette", category: "Plumbing" },
+  { name: "PPRC Pipe (1 inch)", unitPrice: 450, unit: "10ft", icon: "Pipette", category: "Plumbing" },
+  { name: "Commode", unitPrice: 12000, unit: "nos", icon: "Bath", category: "Plumbing" },
+  { name: "Wash Basin", unitPrice: 5000, unit: "nos", icon: "Droplets", category: "Plumbing" },
+
+  // Woodwork
+  { name: "Door (Wooden Panel)", unitPrice: 25000, unit: "nos", icon: "DoorOpen", category: "Woodwork" },
+  { name: "Door Frame", unitPrice: 8000, unit: "nos", icon: "Frame", category: "Woodwork" },
+  { name: "Window (Aluminum)", unitPrice: 650, unit: "sqft", icon: "Frame", category: "Woodwork" },
+
+  // Structure
+  { name: "Foundation Work", unitPrice: 180, unit: "sqft", icon: "Layers", category: "Structure" },
+  { name: "RCC Columns", unitPrice: 15000, unit: "nos", icon: "Cylinder", category: "Structure" },
+  { name: "Slab (RCC)", unitPrice: 200, unit: "sqft", icon: "Square", category: "Structure" },
+  { name: "Brickwork", unitPrice: 55, unit: "sqft", icon: "Brick", category: "Structure" },
+  { name: "Plastering", unitPrice: 35, unit: "sqft", icon: "Hammer", category: "Structure" },
+  { name: "Waterproofing", unitPrice: 45, unit: "sqft", icon: "Droplets", category: "Structure" },
+];
 
 export const useMasterPriceList = () => {
   const [items, setItems] = useState<MasterPriceItem[]>(() => {
@@ -10,7 +62,12 @@ export const useMasterPriceList = () => {
     if (saved) {
       try { return JSON.parse(saved); } catch { return []; }
     }
-    return [];
+    // Load defaults on first use
+    const defaults = DEFAULT_ITEMS.map((item, i) => ({
+      ...item,
+      id: `mp-default-${i}`,
+    }));
+    return defaults;
   });
 
   useEffect(() => {
