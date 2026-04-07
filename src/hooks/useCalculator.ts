@@ -4,6 +4,32 @@ import { getEmptyState } from "@/data/templates";
 import { arrayMove } from "@dnd-kit/sortable";
 
 const STORAGE_KEY = "econ-calculator-data";
+const PRICE_MAP_KEY = "econ-master-price-map";
+
+// Apply master price list prices to sections
+const applyMasterPrices = (data: CalculatorState): CalculatorState => {
+  try {
+    const mapStr = localStorage.getItem(PRICE_MAP_KEY);
+    if (!mapStr) return data;
+    const priceMap: Record<string, number> = JSON.parse(mapStr);
+    if (Object.keys(priceMap).length === 0) return data;
+    return {
+      ...data,
+      sections: data.sections.map((section) => ({
+        ...section,
+        items: section.items.map((item) => {
+          const key = item.name.toLowerCase();
+          if (priceMap[key] !== undefined && priceMap[key] > 0) {
+            return { ...item, unitPrice: priceMap[key] };
+          }
+          return item;
+        }),
+      })),
+    };
+  } catch {
+    return data;
+  }
+};
 
 // Migration function to convert old data format to new sections format
 const migrateOldData = (data: any): CalculatorState => {
