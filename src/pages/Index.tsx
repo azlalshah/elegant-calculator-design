@@ -8,8 +8,12 @@ import { ActionBar } from "@/components/calculator/ActionBar";
 import { PDFPreviewModal } from "@/components/calculator/PDFPreviewModal";
 import { useCalculator } from "@/hooks/useCalculator";
 import { exportToPDF } from "@/components/calculator/PDFExport";
+import { useSavedEstimates } from "@/hooks/useSavedEstimates";
+import { useToast } from "@/hooks/use-toast";
 
 const Index = () => {
+  const { saveEstimate } = useSavedEstimates();
+  const { toast } = useToast();
   const {
     state,
     updateProjectInfo,
@@ -39,6 +43,8 @@ const Index = () => {
 
   const handleExportPDF = () => {
     exportToPDF({ state, totals, ratePerSqft });
+    saveEstimate(state, totals, ratePerSqft);
+    toast({ title: "Auto-Saved", description: "Estimate saved to your Saved Estimates list." });
     setShowPreview(false);
   };
 

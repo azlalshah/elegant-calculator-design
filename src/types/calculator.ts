@@ -41,6 +41,26 @@ export interface ProjectTemplate {
   data: CalculatorState;
 }
 
+// Master Price List item
+export interface MasterPriceItem {
+  id: string;
+  name: string;
+  unitPrice: number;
+  unit: string;
+  icon: string;
+  category: string;
+}
+
+// Saved Estimate
+export interface SavedEstimate {
+  id: string;
+  name: string;
+  savedAt: string;
+  data: CalculatorState;
+  totals: Record<string, number>;
+  ratePerSqft: number;
+}
+
 // Available icons for materials/items
 export const AVAILABLE_ICONS = [
   "Package", "Mountain", "Grid3x3", "Square", "Paintbrush", "DoorOpen", 
