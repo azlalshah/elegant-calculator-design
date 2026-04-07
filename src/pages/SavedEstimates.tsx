@@ -14,7 +14,9 @@ const SavedEstimates = () => {
   const { toast } = useToast();
 
   // Refresh from storage on mount to pick up auto-updated prices
-  refreshFromStorage();
+  useEffect(() => {
+    refreshFromStorage();
+  }, [refreshFromStorage]);
 
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat("en-PK", {
