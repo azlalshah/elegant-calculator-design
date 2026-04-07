@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { useMasterPriceList } from "@/hooks/useMasterPriceList";
 import { Trash2, Plus, DollarSign, Search } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { IconSelector } from "@/components/calculator/IconSelector";
 
 const MasterPriceList = () => {
   const { items, addItem, updateItem, removeItem } = useMasterPriceList();
@@ -17,6 +18,7 @@ const MasterPriceList = () => {
   const [search, setSearch] = useState("");
 
   const formatCurrency = (amount: number) => {
+    if (amount === 0) return "—";
     return new Intl.NumberFormat("en-PK", {
       style: "currency",
       currency: "PKR",
@@ -109,55 +111,69 @@ const MasterPriceList = () => {
           </CardContent>
         </Card>
 
-        {/* Items by Category */}
+        {/* Items Count */}
         <div className="text-sm text-muted-foreground mb-3">
           Total Items: <span className="font-semibold text-foreground">{filteredItems.length}</span>
         </div>
 
+        {/* Items by Category - Same style as Calculator */}
         {Object.entries(groupedItems).map(([category, catItems]) => (
           <Card key={category} className="mb-4">
             <CardHeader className="pb-2">
               <CardTitle className="text-base">{category} ({catItems.length})</CardTitle>
             </CardHeader>
-            <CardContent className="p-0">
-              <div className="overflow-x-auto">
-                <table className="w-full text-sm">
-                  <thead>
-                    <tr className="border-b bg-muted/50">
-                      <th className="text-left px-4 py-2 font-medium text-muted-foreground">Item Name</th>
-                      <th className="text-center px-4 py-2 font-medium text-muted-foreground">Current Price</th>
-                      <th className="text-center px-4 py-2 font-medium text-muted-foreground">Unit</th>
-                      <th className="text-right px-4 py-2 font-medium text-muted-foreground w-16"></th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {catItems.map((item) => (
-                      <tr key={item.id} className="border-b last:border-0 hover:bg-muted/30 transition-colors">
-                        <td className="px-4 py-2 font-medium">{item.name}</td>
-                        <td className="px-4 py-2 text-center">
-                          <Input
-                            type="number"
-                            value={item.unitPrice || ""}
-                            onChange={(e) => handlePriceUpdate(item.id, Number(e.target.value))}
-                            className="h-8 text-sm text-center w-28 mx-auto"
-                          />
-                        </td>
-                        <td className="px-4 py-2 text-center text-muted-foreground">{item.unit}</td>
-                        <td className="px-4 py-2 text-right">
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            onClick={() => removeItem(item.id)}
-                            className="h-8 w-8 text-muted-foreground hover:text-destructive"
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
+            <CardContent className="space-y-2">
+              {catItems.map((item) => (
+                <div
+                  key={item.id}
+                  className="grid grid-cols-12 items-center gap-2 rounded-lg border border-border bg-card p-3 transition-colors hover:bg-muted/50"
+                >
+                  {/* Icon & Name */}
+                  <div className="col-span-12 flex items-center gap-3 sm:col-span-4">
+                    <IconSelector
+                      value={item.icon}
+                      onChange={(icon) => updateItem(item.id, { icon })}
+                    />
+                    <div className="min-w-0 flex-1">
+                      <span className="text-sm font-medium">{item.name}</span>
+                      <span className="mt-0.5 block text-[10px] text-muted-foreground">{item.category}</span>
+                    </div>
+                  </div>
+
+                  {/* Unit Price - Editable */}
+                  <div className="col-span-4 sm:col-span-3">
+                    <Input
+                      type="number"
+                      value={item.unitPrice || ""}
+                      onChange={(e) => handlePriceUpdate(item.id, Number(e.target.value))}
+                      className="h-8 text-center text-sm"
+                    />
+                    <span className="mt-0.5 block text-center text-[10px] text-muted-foreground">
+                      per {item.unit}
+                    </span>
+                  </div>
+
+                  {/* Current Price Display */}
+                  <div className="col-span-4 text-right sm:col-span-3">
+                    <span className="text-sm font-semibold text-foreground">
+                      {formatCurrency(item.unitPrice)}
+                    </span>
+                    <span className="mt-0.5 block text-[10px] text-muted-foreground">current price</span>
+                  </div>
+
+                  {/* Delete */}
+                  <div className="col-span-4 flex justify-end sm:col-span-2">
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => removeItem(item.id)}
+                      className="h-7 w-7 text-muted-foreground hover:text-destructive"
+                    >
+                      <Trash2 className="h-3.5 w-3.5" />
+                    </Button>
+                  </div>
+                </div>
+              ))}
             </CardContent>
           </Card>
         ))}
