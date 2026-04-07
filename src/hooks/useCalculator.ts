@@ -216,7 +216,8 @@ export const useCalculator = () => {
   }, []);
 
   const loadTemplate = useCallback((templateData: CalculatorState) => {
-    setState(JSON.parse(JSON.stringify(templateData)));
+    const data = JSON.parse(JSON.stringify(templateData));
+    setState(applyMasterPrices(data));
   }, []);
 
   const resetCalculator = useCallback(() => {
