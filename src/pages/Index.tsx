@@ -12,6 +12,8 @@ import { useSavedEstimates } from "@/hooks/useSavedEstimates";
 import { useToast } from "@/hooks/use-toast";
 
 const Index = () => {
+  const { saveEstimate } = useSavedEstimates();
+  const { toast } = useToast();
   const {
     state,
     updateProjectInfo,
