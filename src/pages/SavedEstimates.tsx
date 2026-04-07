@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import { Header } from "@/components/calculator/Header";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -13,7 +14,9 @@ const SavedEstimates = () => {
   const { toast } = useToast();
 
   // Refresh from storage on mount to pick up auto-updated prices
-  refreshFromStorage();
+  useEffect(() => {
+    refreshFromStorage();
+  }, [refreshFromStorage]);
 
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat("en-PK", {
