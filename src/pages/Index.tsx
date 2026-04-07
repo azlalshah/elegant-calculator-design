@@ -14,7 +14,7 @@ import { useToast } from "@/hooks/use-toast";
 
 const Index = () => {
   const { saveEstimate } = useSavedEstimates();
-  const { syncFromCalculator } = useMasterPriceList();
+  
   const { toast } = useToast();
   const {
     state,
