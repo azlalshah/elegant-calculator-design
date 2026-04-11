@@ -259,28 +259,26 @@ const generateChartSVG = (sections: CostSection[], totals: Record<string, number
   `;
 };
 
-// Duration bar chart
-const generateDurationChart = (duration: string) => {
-  if (!duration) return "";
+// Duration bar chart - uses saved timeline phases
+const generateDurationChart = (duration: string, timelinePhases?: { id: string; name: string; months: number }[]) => {
+  const phases = timelinePhases && timelinePhases.length > 0
+    ? timelinePhases.filter((p) => p.months > 0).map((p, i) => ({
+        name: p.name,
+        percentage: p.months,
+        color: ["#3b82f6", "#22c55e", "#f59e0b", "#8b5cf6", "#ef4444", "#06b6d4"][i % 6],
+        isMonths: true,
+      }))
+    : null;
 
-  // Parse duration (e.g., "6 months", "8 months")
-  const months = parseInt(duration) || 0;
-  if (months === 0) return "";
+  if (!phases || phases.length === 0) return "";
 
-  const phases = [
-    { name: "Planning", percentage: 10, color: "#3b82f6" },
-    { name: "Foundation", percentage: 15, color: "#22c55e" },
-    { name: "Structure", percentage: 30, color: "#f59e0b" },
-    { name: "Finishing", percentage: 35, color: "#8b5cf6" },
-    { name: "Handover", percentage: 10, color: "#ef4444" },
-  ];
-
+  const maxMonths = Math.max(...phases.map((p) => p.percentage));
   const barWidth = 60;
   const maxHeight = 120;
   const spacing = 20;
 
   const bars = phases.map((phase, index) => {
-    const height = (phase.percentage / 100) * maxHeight;
+    const height = (phase.percentage / maxMonths) * maxHeight;
     const x = index * (barWidth + spacing);
     const y = maxHeight - height;
 
@@ -288,7 +286,7 @@ const generateDurationChart = (duration: string) => {
       <g transform="translate(${x}, 0)">
         <rect x="0" y="${y}" width="${barWidth}" height="${height}" fill="${phase.color}" rx="4"/>
         <text x="${barWidth / 2}" y="${maxHeight + 15}" font-size="9" fill="#374151" text-anchor="middle">${phase.name}</text>
-        <text x="${barWidth / 2}" y="${y - 5}" font-size="10" fill="#374151" text-anchor="middle" font-weight="bold">${phase.percentage}%</text>
+        <text x="${barWidth / 2}" y="${y - 5}" font-size="10" fill="#374151" text-anchor="middle" font-weight="bold">${phase.percentage} mo</text>
       </g>
     `;
   }).join("");
@@ -297,7 +295,7 @@ const generateDurationChart = (duration: string) => {
 
   return `
     <div class="chart-section">
-      <h3>Project Timeline - ${duration}</h3>
+      <h3>Project Timeline${duration ? ` - ${duration}` : ""}</h3>
       <div class="chart-container">
         <svg width="${svgWidth}" height="150" viewBox="0 0 ${svgWidth} 150">
           ${bars}
