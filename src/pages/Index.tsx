@@ -95,6 +95,7 @@ const Index = () => {
               duration={state.projectInfo.duration}
               taxPercentage={state.projectInfo.taxPercentage}
               discountPercentage={state.projectInfo.discountPercentage}
+              timelinePhases={state.projectInfo.timelinePhases || []}
               onUpdateProjectInfo={updateProjectInfo}
             />
           </div>

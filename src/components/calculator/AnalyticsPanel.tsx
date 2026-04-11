@@ -184,10 +184,50 @@ export const AnalyticsPanel = ({ totals, sections, workingArea, duration, taxPer
           </ResponsiveContainer>
         </div>
 
-        {/* Duration Bar Chart */}
-        {durationData.length > 0 && (
-          <div>
-            <p className="text-sm font-medium text-muted-foreground mb-2">Project Timeline</p>
+        {/* Duration Bar Chart + Editable Phases */}
+        <div>
+          <div className="flex items-center justify-between mb-2">
+            <p className="text-sm font-medium text-muted-foreground">Project Timeline</p>
+            <Button variant="ghost" size="sm" className="h-6 px-2 text-xs" onClick={addPhase}>
+              <Plus className="h-3 w-3 mr-1" /> Phase
+            </Button>
+          </div>
+          
+          {/* Editable phase list */}
+          <div className="space-y-2 mb-3">
+            {timelinePhases.map((phase) => (
+              <div key={phase.id} className="flex items-center gap-2">
+                <Input
+                  value={phase.name}
+                  onChange={(e) => updatePhase(phase.id, { name: e.target.value })}
+                  className="h-7 text-xs flex-1"
+                  placeholder="Phase name"
+                />
+                <Input
+                  type="number"
+                  min={0}
+                  value={phase.months || ""}
+                  onChange={(e) => updatePhase(phase.id, { months: parseInt(e.target.value) || 0 })}
+                  className="h-7 text-xs w-16 text-center"
+                  placeholder="Mo"
+                />
+                <span className="text-[10px] text-muted-foreground whitespace-nowrap">mo</span>
+                {timelinePhases.length > 1 && (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="h-6 w-6 p-0 text-destructive hover:text-destructive"
+                    onClick={() => removePhase(phase.id)}
+                  >
+                    <Trash2 className="h-3 w-3" />
+                  </Button>
+                )}
+              </div>
+            ))}
+          </div>
+
+          {/* Bar chart visualization */}
+          {durationData.length > 0 && (
             <div className="h-40">
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={durationData} layout="vertical">
@@ -210,8 +250,8 @@ export const AnalyticsPanel = ({ totals, sections, workingArea, duration, taxPer
                 </BarChart>
               </ResponsiveContainer>
             </div>
-          </div>
-        )}
+          )}
+        </div>
 
         {/* Stats Grid */}
         <div className="grid gap-3">
