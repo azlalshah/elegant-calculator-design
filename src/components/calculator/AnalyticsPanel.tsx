@@ -1,9 +1,10 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Button } from "@/components/ui/button";
 import { PieChart, Pie, Cell, ResponsiveContainer, Legend, Tooltip, BarChart, Bar, XAxis, YAxis, CartesianGrid } from "recharts";
-import { TrendingUp, Layers, DollarSign, Percent, Tag } from "lucide-react";
-import { CostSection, ProjectInfo } from "@/types/calculator";
+import { TrendingUp, Layers, DollarSign, Percent, Tag, Plus, Trash2 } from "lucide-react";
+import { CostSection, ProjectInfo, TimelinePhase } from "@/types/calculator";
 
 interface AnalyticsPanelProps {
   totals: Record<string, number>;
@@ -12,6 +13,7 @@ interface AnalyticsPanelProps {
   duration: string;
   taxPercentage: number;
   discountPercentage: number;
+  timelinePhases: TimelinePhase[];
   onUpdateProjectInfo: (updates: Partial<ProjectInfo>) => void;
 }
 
