@@ -1,3 +1,9 @@
+export interface TimelinePhase {
+  id: string;
+  name: string;
+  months: number;
+}
+
 export interface CostItem {
   id: string;
   name: string;
@@ -27,6 +33,7 @@ export interface ProjectInfo {
   notes: string;
   taxPercentage: number;
   discountPercentage: number;
+  timelinePhases: TimelinePhase[];
 }
 
 export interface CalculatorState {
