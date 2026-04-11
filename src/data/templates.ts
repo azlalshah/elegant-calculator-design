@@ -12,6 +12,13 @@ const emptyState: CalculatorState = {
     notes: "",
     taxPercentage: 0,
     discountPercentage: 0,
+    timelinePhases: [
+      { id: "phase-1", name: "Planning", months: 1 },
+      { id: "phase-2", name: "Foundation", months: 1 },
+      { id: "phase-3", name: "Structure", months: 2 },
+      { id: "phase-4", name: "Finishing", months: 2 },
+      { id: "phase-5", name: "Handover", months: 1 },
+    ],
   },
   sections: [
     {
@@ -104,6 +111,13 @@ const g2FinishingTemplate: CalculatorState = {
     notes: "Complete finishing work for G+2 residential building",
     taxPercentage: 0,
     discountPercentage: 0,
+    timelinePhases: [
+      { id: "phase-1", name: "Planning", months: 1 },
+      { id: "phase-2", name: "Foundation", months: 1 },
+      { id: "phase-3", name: "Structure", months: 1 },
+      { id: "phase-4", name: "Finishing", months: 2 },
+      { id: "phase-5", name: "Handover", months: 1 },
+    ],
   },
   sections: [
     {
@@ -182,6 +196,13 @@ const g3StructureTemplate: CalculatorState = {
     notes: "Grey structure for G+3 commercial building",
     taxPercentage: 0,
     discountPercentage: 0,
+    timelinePhases: [
+      { id: "phase-1", name: "Planning", months: 1 },
+      { id: "phase-2", name: "Foundation", months: 2 },
+      { id: "phase-3", name: "Structure", months: 3 },
+      { id: "phase-4", name: "Finishing", months: 1 },
+      { id: "phase-5", name: "Handover", months: 1 },
+    ],
   },
   sections: [
     {

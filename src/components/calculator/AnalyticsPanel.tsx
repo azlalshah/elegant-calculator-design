@@ -1,9 +1,10 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Button } from "@/components/ui/button";
 import { PieChart, Pie, Cell, ResponsiveContainer, Legend, Tooltip, BarChart, Bar, XAxis, YAxis, CartesianGrid } from "recharts";
-import { TrendingUp, Layers, DollarSign, Percent, Tag } from "lucide-react";
-import { CostSection, ProjectInfo } from "@/types/calculator";
+import { TrendingUp, Layers, DollarSign, Percent, Tag, Plus, Trash2 } from "lucide-react";
+import { CostSection, ProjectInfo, TimelinePhase } from "@/types/calculator";
 
 interface AnalyticsPanelProps {
   totals: Record<string, number>;
@@ -12,12 +13,13 @@ interface AnalyticsPanelProps {
   duration: string;
   taxPercentage: number;
   discountPercentage: number;
+  timelinePhases: TimelinePhase[];
   onUpdateProjectInfo: (updates: Partial<ProjectInfo>) => void;
 }
 
 const COLORS = ["#3b82f6", "#22c55e", "#f59e0b", "#8b5cf6", "#ef4444", "#06b6d4"];
 
-export const AnalyticsPanel = ({ totals, sections, workingArea, duration, taxPercentage, discountPercentage, onUpdateProjectInfo }: AnalyticsPanelProps) => {
+export const AnalyticsPanel = ({ totals, sections, workingArea, duration, taxPercentage, discountPercentage, timelinePhases, onUpdateProjectInfo }: AnalyticsPanelProps) => {
   const chartData = sections
     .map((section, index) => ({
       name: section.name,
@@ -47,15 +49,28 @@ export const AnalyticsPanel = ({ totals, sections, workingArea, duration, taxPer
 
   const costPerSqft = workingArea > 0 ? Math.round(totals.grandTotal / workingArea) : 0;
 
-  // Duration chart data
-  const durationMonths = parseInt(duration) || 0;
-  const durationData = durationMonths > 0 ? [
-    { name: "Planning", months: Math.round(durationMonths * 0.1) || 1 },
-    { name: "Foundation", months: Math.round(durationMonths * 0.15) || 1 },
-    { name: "Structure", months: Math.round(durationMonths * 0.3) || 1 },
-    { name: "Finishing", months: Math.round(durationMonths * 0.35) || 1 },
-    { name: "Handover", months: Math.round(durationMonths * 0.1) || 1 },
-  ] : [];
+  const updatePhase = (phaseId: string, updates: Partial<TimelinePhase>) => {
+    const updated = timelinePhases.map((p) =>
+      p.id === phaseId ? { ...p, ...updates } : p
+    );
+    onUpdateProjectInfo({ timelinePhases: updated });
+  };
+
+  const addPhase = () => {
+    const newPhase: TimelinePhase = {
+      id: `phase-${Date.now()}`,
+      name: "New Phase",
+      months: 1,
+    };
+    onUpdateProjectInfo({ timelinePhases: [...timelinePhases, newPhase] });
+  };
+
+  const removePhase = (phaseId: string) => {
+    onUpdateProjectInfo({ timelinePhases: timelinePhases.filter((p) => p.id !== phaseId) });
+  };
+
+  // Use editable phases for chart
+  const durationData = timelinePhases.filter((p) => p.months > 0);
 
   const stats = [
     {
@@ -169,10 +184,50 @@ export const AnalyticsPanel = ({ totals, sections, workingArea, duration, taxPer
           </ResponsiveContainer>
         </div>
 
-        {/* Duration Bar Chart */}
-        {durationData.length > 0 && (
-          <div>
-            <p className="text-sm font-medium text-muted-foreground mb-2">Project Timeline</p>
+        {/* Duration Bar Chart + Editable Phases */}
+        <div>
+          <div className="flex items-center justify-between mb-2">
+            <p className="text-sm font-medium text-muted-foreground">Project Timeline</p>
+            <Button variant="ghost" size="sm" className="h-6 px-2 text-xs" onClick={addPhase}>
+              <Plus className="h-3 w-3 mr-1" /> Phase
+            </Button>
+          </div>
+          
+          {/* Editable phase list */}
+          <div className="space-y-2 mb-3">
+            {timelinePhases.map((phase) => (
+              <div key={phase.id} className="flex items-center gap-2">
+                <Input
+                  value={phase.name}
+                  onChange={(e) => updatePhase(phase.id, { name: e.target.value })}
+                  className="h-7 text-xs flex-1"
+                  placeholder="Phase name"
+                />
+                <Input
+                  type="number"
+                  min={0}
+                  value={phase.months || ""}
+                  onChange={(e) => updatePhase(phase.id, { months: parseInt(e.target.value) || 0 })}
+                  className="h-7 text-xs w-16 text-center"
+                  placeholder="Mo"
+                />
+                <span className="text-[10px] text-muted-foreground whitespace-nowrap">mo</span>
+                {timelinePhases.length > 1 && (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="h-6 w-6 p-0 text-destructive hover:text-destructive"
+                    onClick={() => removePhase(phase.id)}
+                  >
+                    <Trash2 className="h-3 w-3" />
+                  </Button>
+                )}
+              </div>
+            ))}
+          </div>
+
+          {/* Bar chart visualization */}
+          {durationData.length > 0 && (
             <div className="h-40">
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={durationData} layout="vertical">
@@ -195,8 +250,8 @@ export const AnalyticsPanel = ({ totals, sections, workingArea, duration, taxPer
                 </BarChart>
               </ResponsiveContainer>
             </div>
-          </div>
-        )}
+          )}
+        </div>
 
         {/* Stats Grid */}
         <div className="grid gap-3">
