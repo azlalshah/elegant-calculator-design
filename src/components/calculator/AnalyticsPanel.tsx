@@ -19,7 +19,7 @@ interface AnalyticsPanelProps {
 
 const COLORS = ["#3b82f6", "#22c55e", "#f59e0b", "#8b5cf6", "#ef4444", "#06b6d4"];
 
-export const AnalyticsPanel = ({ totals, sections, workingArea, duration, taxPercentage, discountPercentage, onUpdateProjectInfo }: AnalyticsPanelProps) => {
+export const AnalyticsPanel = ({ totals, sections, workingArea, duration, taxPercentage, discountPercentage, timelinePhases, onUpdateProjectInfo }: AnalyticsPanelProps) => {
   const chartData = sections
     .map((section, index) => ({
       name: section.name,
@@ -49,15 +49,28 @@ export const AnalyticsPanel = ({ totals, sections, workingArea, duration, taxPer
 
   const costPerSqft = workingArea > 0 ? Math.round(totals.grandTotal / workingArea) : 0;
 
-  // Duration chart data
-  const durationMonths = parseInt(duration) || 0;
-  const durationData = durationMonths > 0 ? [
-    { name: "Planning", months: Math.round(durationMonths * 0.1) || 1 },
-    { name: "Foundation", months: Math.round(durationMonths * 0.15) || 1 },
-    { name: "Structure", months: Math.round(durationMonths * 0.3) || 1 },
-    { name: "Finishing", months: Math.round(durationMonths * 0.35) || 1 },
-    { name: "Handover", months: Math.round(durationMonths * 0.1) || 1 },
-  ] : [];
+  const updatePhase = (phaseId: string, updates: Partial<TimelinePhase>) => {
+    const updated = timelinePhases.map((p) =>
+      p.id === phaseId ? { ...p, ...updates } : p
+    );
+    onUpdateProjectInfo({ timelinePhases: updated });
+  };
+
+  const addPhase = () => {
+    const newPhase: TimelinePhase = {
+      id: `phase-${Date.now()}`,
+      name: "New Phase",
+      months: 1,
+    };
+    onUpdateProjectInfo({ timelinePhases: [...timelinePhases, newPhase] });
+  };
+
+  const removePhase = (phaseId: string) => {
+    onUpdateProjectInfo({ timelinePhases: timelinePhases.filter((p) => p.id !== phaseId) });
+  };
+
+  // Use editable phases for chart
+  const durationData = timelinePhases.filter((p) => p.months > 0);
 
   const stats = [
     {
