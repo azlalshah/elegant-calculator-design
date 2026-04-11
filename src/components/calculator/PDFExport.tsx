@@ -622,7 +622,7 @@ export const generatePDFContent = ({ state, totals, ratePerSqft }: PDFExportProp
       </div>
 
       ${generateChartSVG(sections, totals)}
-      ${generateDurationChart(projectInfo.duration)}
+      ${generateDurationChart(projectInfo.duration, projectInfo.timelinePhases)}
 
       ${sections.map((section) => renderItems(section, totals[section.id] || 0)).join("")}
 
